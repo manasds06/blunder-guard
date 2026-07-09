@@ -71,3 +71,14 @@ Write IndexedDB first, enqueue push, retry later. Conflicts: last-write-wins by 
 
 ### Eval graph clamping
 Raw mates are ±10000-ish; the chart clamps to ±5 pawns so one mate doesn't flatten the rest of the game.
+
+## Phase 5 — Dashboard / openings / personas
+
+### Decorator pattern
+`PersonalityWrapper` implements `EngineProvider` and wraps Stockfish. Same trick will wrap the Phase 6 ONNX bot.
+
+### Content-as-data
+Opening lines live in `lib/openings/repertoire/` as data, not hardcoded UI. Transpositions: match by expected UCI at ply (v1); FEN matching is the longer-term fix.
+
+### DRY SRS
+Opening misses reuse `lib/puzzles/srs.ts` with `kind: "opening"`.

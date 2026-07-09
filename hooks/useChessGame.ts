@@ -9,10 +9,18 @@ import { Chess, type Square } from "chess.js";
 import { getBotLevel } from "@/lib/engine/botLevels";
 import { getPlayEngine } from "@/lib/engine/stockfish";
 import {
+  getPersonality,
+  PersonalityWrapper,
+  randomOneLiner,
+  type Personality,
+} from "@/lib/engine/personalities";
+import type { EngineProvider } from "@/lib/engine/provider";
+import {
   clearCurrentGame,
   loadCurrentGame,
   saveCurrentGame,
 } from "@/lib/storage/local";
+import { recordGameStat } from "@/lib/stats/aggregate";
 
 export type PlayerColor = "w" | "b";
 
@@ -28,6 +36,7 @@ export type GameStatus =
 export type UseChessGameOptions = {
   botElo?: number;
   playerColor?: PlayerColor;
+  personalityId?: string | null;
 };
 
 function detectStatus(chess: Chess, resigned = false): GameStatus {
@@ -48,6 +57,10 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     opts.playerColor ?? "w",
   );
   const [botElo, setBotElo] = useState(opts.botElo ?? 800);
+  const [personalityId, setPersonalityId] = useState<string | null>(
+    opts.personalityId ?? null,
+  );
+  const [botLine, setBotLine] = useState<string>();
   const [status, setStatus] = useState<GameStatus>("idle");
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintArrow, setHintArrow] = useState<{
@@ -153,10 +166,18 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     botBusy.current = true;
     setStatus("thinking");
     try {
-      const engine = getPlayEngine();
-      if (!engineReady) await engine.init();
-      const level = getBotLevel(botElo);
-      const move = await engine.getMove(chess.fen(), {
+      const stockfish = getPlayEngine();
+      if (!engineReady) await stockfish.init();
+      const persona = personalityId ? getPersonality(personalityId) : undefined;
+      const elo = persona?.elo ?? botElo;
+      const level = getBotLevel(elo);
+
+      let provider: EngineProvider = stockfish;
+      if (persona && persona.style !== "balanced") {
+        provider = new PersonalityWrapper(stockfish, persona);
+      }
+
+      const move = await provider.getMove(chess.fen(), {
         movetime: level.movetime,
         skillLevel: level.skillLevel,
         elo: level.elo,
@@ -182,7 +203,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     } finally {
       botBusy.current = false;
     }
-  }, [botElo, engineReady, playerColor, syncFromChess]);
+  }, [botElo, engineReady, personalityId, playerColor, syncFromChess]);
 
   // Bot to move after player move / new game as black
   useEffect(() => {
@@ -224,25 +245,48 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
   );
 
   const newGame = useCallback(
-    async (color: PlayerColor = playerColor, elo: number = botElo) => {
+    async (
+      color: PlayerColor = playerColor,
+      elo: number = botElo,
+      personaId: string | null = personalityId,
+    ) => {
       chessRef.current = new Chess();
       setPlayerColor(color);
-      setBotElo(elo);
+      const persona = personaId ? getPersonality(personaId) : undefined;
+      setPersonalityId(personaId);
+      setBotElo(persona?.elo ?? elo);
       setHintsUsed(0);
       setHintArrow(null);
       setLastMove(null);
       setViewIndex(null);
       setHistory([]);
+      setBotLine(undefined);
       setFen(chessRef.current.fen());
       setStatus("playing");
       await clearCurrentGame();
     },
-    [playerColor, botElo],
+    [playerColor, botElo, personalityId],
+  );
+
+  const selectPersonality = useCallback(
+    (p: Personality) => {
+      void newGame(playerColor, p.elo, p.id);
+    },
+    [newGame, playerColor],
   );
 
   const resign = useCallback(() => {
     syncFromChess(true);
-  }, [syncFromChess]);
+    const persona = personalityId ? getPersonality(personalityId) : undefined;
+    if (persona) setBotLine(randomOneLiner(persona));
+    void recordGameStat({
+      id: `game-${Date.now()}`,
+      result: "resigned",
+      botElo,
+      blunders: 0,
+      date: Date.now(),
+    });
+  }, [botElo, personalityId, syncFromChess]);
 
   /** Undo last full move pair (player + bot). Unlimited vs bots. */
   const takeback = useCallback(() => {
@@ -333,6 +377,9 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     scrubTo,
     setBotElo,
     setPlayerColor,
+    personalityId,
+    selectPersonality,
+    botLine,
     clearHint: () => setHintArrow(null),
     pgn: () => chessRef.current.pgn(),
   };

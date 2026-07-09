@@ -91,3 +91,9 @@ PGN → sanitize → Stockfish sweep (dedicated provider instance)
 - Eval graph is **White's perspective**, clamped ±5 pawns (mates at clamp).
 - Auth via Supabase magic link when env keys exist; otherwise "Local mode".
 - `lib/storage/sync.ts` queues offline writes (last-write-wins) for later cloud push.
+
+## Phase 5 — Dashboard, openings, personalities
+
+- **Dashboard** (`/dashboard`): blunders/game sparkline, puzzle rating, win rate by Elo, estimated strength.
+- **Openings** (`/openings`): Italian, anti-Sicilian, Scandinavian, KID-lite — drill by FEN/move order; SRS on misses.
+- **Personalities**: `PersonalityWrapper` (Decorator) biases MultiPV sampling — aggressive / solid / speedy — without changing Elo caps.

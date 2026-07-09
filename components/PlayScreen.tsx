@@ -7,6 +7,7 @@ import { MoveList } from "@/components/MoveList";
 import { CoachPanel } from "@/components/CoachPanel";
 import { CoachSettings } from "@/components/CoachSettings";
 import { BlunderCheckModal } from "@/components/BlunderCheckModal";
+import { PersonalityPicker } from "@/components/PersonalityPicker";
 import { useChessGame } from "@/hooks/useChessGame";
 import { useCoach } from "@/hooks/useCoach";
 import { quickBlunderCheck } from "@/lib/coach/detector";
@@ -128,6 +129,9 @@ export function PlayScreen() {
                   ? "Waiting…"
                   : `Game over: ${game.status}`}
         </p>
+        {gameOver && game.botLine && (
+          <p className="text-sm italic text-[var(--accent)]">{game.botLine}</p>
+        )}
       </div>
 
       <aside className="flex flex-col gap-4">
@@ -138,15 +142,19 @@ export function PlayScreen() {
           hintsRemaining={game.hintsRemaining}
           engineReady={game.engineReady}
           onBotElo={(elo) => {
-            void game.newGame(game.playerColor, elo);
+            void game.newGame(game.playerColor, elo, null);
           }}
           onColor={(c) => {
-            void game.newGame(c, game.botElo);
+            void game.newGame(c, game.botElo, game.personalityId);
           }}
           onNewGame={() => void game.newGame()}
           onResign={game.resign}
           onTakeback={game.takeback}
           onHint={() => void game.requestHint()}
+        />
+        <PersonalityPicker
+          selectedId={game.personalityId}
+          onSelect={game.selectPersonality}
         />
         <CoachPanel
           items={coach.items}
