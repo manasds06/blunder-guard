@@ -8,18 +8,26 @@ import {
 } from "@/lib/storage/local";
 import type { LlmProviderId } from "@/lib/llm/provider";
 
+const LABELS: Record<LlmProviderId, string> = {
+  claude: "Claude (Anthropic)",
+  gemini: "Gemini (Google)",
+  ollama: "Ollama (local)",
+};
+
+const ALL_PROVIDERS: LlmProviderId[] = ["ollama", "claude", "gemini"];
+
 type Props = {
   available?: LlmProviderId[];
   onChange?: (settings: AppSettings) => void;
 };
 
 export function CoachSettings({
-  available = ["claude", "gemini"],
+  available = ALL_PROVIDERS,
   onChange,
 }: Props) {
   const [settings, setSettings] = useState<AppSettings>({
     blunderCheckMode: true,
-    llmProvider: "claude",
+    llmProvider: "ollama",
   });
   const [loaded, setLoaded] = useState(false);
 
@@ -41,6 +49,9 @@ export function CoachSettings({
   }
 
   if (!loaded) return null;
+
+  // Always offer every provider; mark which ones the server currently sees
+  const options = ALL_PROVIDERS;
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 text-sm">
@@ -64,16 +75,27 @@ export function CoachSettings({
           }
           data-testid="llm-provider"
         >
-          {available.map((id) => (
+          {options.map((id) => (
             <option key={id} value={id}>
-              {id === "claude" ? "Claude (Anthropic)" : "Gemini (Google)"}
+              {LABELS[id]}
+              {available.includes(id) ? "" : " — offline"}
             </option>
           ))}
         </select>
       </label>
       <p className="mt-2 text-xs text-[var(--muted)]">
-        Set API keys in <code>.env.local</code>. Missing keys fall back to
-        templates.
+        Fully local: install{" "}
+        <a
+          className="text-[var(--accent)] underline"
+          href="https://ollama.com"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Ollama
+        </a>
+        , run <code>ollama pull llama3.2</code>, set{" "}
+        <code>LLM_PROVIDER=ollama</code>. No keys needed. If the LLM is down,
+        template explanations are used instead.
       </p>
     </div>
   );

@@ -60,7 +60,9 @@ The API **rejects** requests missing engine fields. The LLM never sees a bare FE
 | `gemini.ts` | Google Gemini adapter |
 | `index.ts` | Factory — `LLM_PROVIDER=claude\|gemini`, with cross-fallback if one key is missing |
 
-Switch in UI via Settings → Coach LLM, or env `LLM_PROVIDER`. Model overrides: `ANTHROPIC_MODEL`, `GEMINI_MODEL`.
+Switch in UI via Settings → Coach LLM, or env `LLM_PROVIDER`. Model overrides: `ANTHROPIC_MODEL`, `GEMINI_MODEL`, `OLLAMA_MODEL`.
+
+**Fully local:** `LLM_PROVIDER=ollama` + [Ollama](https://ollama.com) (`ollama pull llama3.2`). No API keys. If Ollama is down, templates still work.
 
 ### Hybrid cost control
 

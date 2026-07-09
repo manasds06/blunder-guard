@@ -19,7 +19,8 @@ export type SavedGame = {
 
 export type AppSettings = {
   blunderCheckMode: boolean;
-  llmProvider: "claude" | "gemini";
+  /** claude | gemini | ollama — or omit cloud keys / use ollama for local */
+  llmProvider: "claude" | "gemini" | "ollama";
   llmModel?: string;
 };
 
@@ -128,7 +129,7 @@ export async function loadSettings(): Promise<AppSettings> {
   return (
     row ?? {
       blunderCheckMode: true,
-      llmProvider: "claude",
+      llmProvider: "ollama",
     }
   );
 }

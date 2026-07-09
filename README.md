@@ -13,13 +13,18 @@ Open [http://localhost:3000/play](http://localhost:3000/play).
 
 ## Environment
 
-Copy `.env.example` → `.env.local` (needed from Phase 2 for coach LLM):
+Copy `.env.example` → `.env.local`.
 
-```
-ANTHROPIC_API_KEY=
-GOOGLE_GENERATIVE_AI_API_KEY=
-LLM_PROVIDER=claude   # or gemini
-```
+**Fully local coach (no cloud keys):**
+
+1. Install [Ollama](https://ollama.com)
+2. `ollama pull llama3.2`
+3. In `.env.local`: `LLM_PROVIDER=ollama`
+
+Play, puzzles, analysis, and Stockfish all run in the browser with no network.
+If Ollama is down, Explain falls back to built-in templates.
+
+**Cloud (optional):** set `ANTHROPIC_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` and `LLM_PROVIDER=claude` or `gemini`.
 
 ## Scripts
 

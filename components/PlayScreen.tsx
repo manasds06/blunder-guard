@@ -36,6 +36,7 @@ export function PlayScreen() {
   } | null>(null);
   const [checking, setChecking] = useState(false);
   const [availableLlms, setAvailableLlms] = useState<LlmProviderId[]>([
+    "ollama",
     "claude",
     "gemini",
   ]);

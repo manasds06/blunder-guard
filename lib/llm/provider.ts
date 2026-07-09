@@ -14,7 +14,7 @@ export type LlmGenerateOptions = {
   temperature?: number;
 };
 
-export type LlmProviderId = "claude" | "gemini";
+export type LlmProviderId = "claude" | "gemini" | "ollama";
 
 export interface LlmProvider {
   readonly id: LlmProviderId;

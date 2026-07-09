@@ -1,7 +1,7 @@
 /**
  * POST /api/coach — LLM explains a MistakeReport.
  * Enforces calculate/explain split: rejects requests missing engine data.
- * Provider switchable via body.provider or LLM_PROVIDER env (claude | gemini).
+ * Provider switchable via body.provider or LLM_PROVIDER env (claude | gemini | ollama).
  */
 import { NextResponse } from "next/server";
 import { createLlmProvider, listAvailableProviders } from "@/lib/llm";
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
     );
   }
 
+  const available = await listAvailableProviders();
   const key = await hashKey(`${report.fenBefore}|${report.san}`);
   const cached = cacheGet(key);
   if (cached) {
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
       text: cached.text,
       source: "cache",
       provider: cached.provider,
-      available: listAvailableProviders(),
+      available,
     });
   }
 
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
       source: "llm",
       provider: llm.id,
       model: llm.model,
-      available: listAvailableProviders(),
+      available,
     });
   } catch (e) {
     const fallback = templateExplanation(report);
@@ -104,14 +105,14 @@ export async function POST(req: Request) {
       text: fallback,
       source: "template",
       error: message,
-      available: listAvailableProviders(),
+      available,
     });
   }
 }
 
 export async function GET() {
   return NextResponse.json({
-    available: listAvailableProviders(),
+    available: await listAvailableProviders(),
     default: process.env.LLM_PROVIDER ?? "claude",
   });
 }
