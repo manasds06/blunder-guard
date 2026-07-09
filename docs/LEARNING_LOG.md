@@ -23,3 +23,23 @@ Async key-value store in the browser. We use it for the in-progress game so a re
 - chess.js `move()` throws on illegal input — always try/catch at the UI boundary.
 - react-chessboard v5 uses an `options` object (not flat props like v4).
 - Stockfish lite single resolves `.wasm` next to the worker script via `locateFile` / URL hash — keep both files in `/public/engine/`.
+
+## Phase 2 — Live coach + LLM switching
+
+### API routes & secrets
+`/api/coach` runs on the server so `ANTHROPIC_API_KEY` / `GOOGLE_GENERATIVE_AI_API_KEY` never reach the browser.
+
+### Strategy for LLMs
+Same idea as `EngineProvider`: one `LlmProvider` interface, Claude and Gemini adapters, factory picks by env/settings. Coach code never imports SDKs directly.
+
+### Prompt engineering with structured data
+System prompt = teaching persona. User message = FEN + SAN + evals + best line + theme. The model is forbidden from inventing moves not in that block.
+
+### Caching & LRU
+Identical fen+move → same explanation. Client IndexedDB first; server Map LRU (200 entries) second.
+
+### Graceful degradation
+Missing keys / rate limit / network errors → `templates.ts`. UI never shows raw stack traces.
+
+### Eval perspective
+Stockfish scores are side-to-move. `moverPerspectiveCp` in `detector.ts` is the single normalization point — don't re-implement elsewhere.
