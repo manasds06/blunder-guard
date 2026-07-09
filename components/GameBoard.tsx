@@ -78,7 +78,10 @@ export function GameBoard({
   );
 
   return (
-    <div className="w-full max-w-[560px] mx-auto aspect-square">
+    <div
+      className="w-full max-w-[560px] mx-auto aspect-square"
+      data-testid="game-board"
+    >
       <Chessboard options={options} />
     </div>
   );

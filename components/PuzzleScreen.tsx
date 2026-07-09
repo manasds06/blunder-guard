@@ -278,33 +278,31 @@ export function PuzzleScreen() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_280px]">
       <div className="flex flex-col items-center gap-4">
-        <div className="flex w-full max-w-[520px] flex-wrap items-center gap-x-5 gap-y-1 font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--muted)]">
-          <span>
-            rating{" "}
-            <strong
-              className="font-semibold text-[var(--fg)]"
-              data-testid="puzzle-rating"
-            >
-              {rating}
-            </strong>
-          </span>
-          <span>
-            streak{" "}
-            <strong className="font-semibold text-[var(--fg)]">
-              {sessionStreak}
-            </strong>
-          </span>
-          <span>
-            daily{" "}
-            <strong className="font-semibold text-[var(--fg)]">
-              {dailyCount}/{dailyGoal}
-            </strong>{" "}
-            · day streak {streak}
-          </span>
-          <span className="ml-auto text-[var(--fg)]/70">
-            {orientation} to move
-          </span>
+        <div className="grid w-full max-w-[520px] grid-cols-4 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]">
+          {[
+            {
+              label: "rating",
+              value: String(rating),
+              testId: "puzzle-rating",
+            },
+            { label: "streak", value: String(sessionStreak) },
+            { label: "daily", value: `${dailyCount}/${dailyGoal}` },
+            { label: "day streak", value: String(streak) },
+          ].map((s) => (
+            <div key={s.label} className="bg-[var(--panel)] px-3 py-2">
+              <p className="label">{s.label}</p>
+              <p
+                className="mt-0.5 font-[family-name:var(--font-display)] text-lg font-medium leading-tight"
+                data-testid={s.testId}
+              >
+                {s.value}
+              </p>
+            </div>
+          ))}
         </div>
+        <p className="w-full max-w-[520px] text-right font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--muted)]">
+          {orientation} to move
+        </p>
         <div className="w-full max-w-[520px] aspect-square">
           <Chessboard options={boardOptions} />
         </div>

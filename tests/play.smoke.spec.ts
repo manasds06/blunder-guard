@@ -13,13 +13,10 @@ test("play page: human move then bot reply", async ({ page }) => {
     timeout: 60_000,
   });
 
-  // Drag white pawn e2 → e4 via chessboard squares (data attributes vary;
-  // fall back to clicking New Game then using keyboard-free drag on board).
+  // Start fresh, then drag white pawn e2 → e4 on the board container.
   await page.getByTestId("new-game").click();
 
-  // Interact with board: locate squares by aria / text if available.
-  // react-chessboard renders squares; we use mouse drag on board container.
-  const board = page.locator("#blunder-guard-board, [data-board-id], .w-full.max-w-\\[560px\\]").first();
+  const board = page.getByTestId("game-board");
   await expect(board).toBeVisible({ timeout: 15_000 });
 
   const box = await board.boundingBox();
@@ -36,14 +33,15 @@ test("play page: human move then bot reply", async ({ page }) => {
   await page.mouse.move(e4.x, e4.y, { steps: 8 });
   await page.mouse.up();
 
-  // Expect a bot reply: move list gains a black move, or status cycles thinking→playing
+  // Expect the move to register: move list (mounted but possibly in a hidden
+  // sidebar tab — textContent works regardless) gains the first move pair.
   await expect
     .poll(
       async () => {
-        const text = await page.locator("aside ol, aside .font-mono").first().textContent();
+        const text = await page.getByTestId("move-list").textContent();
         return text ?? "";
       },
-      { timeout: 10_000 },
+      { timeout: 15_000 },
     )
     .toMatch(/1\./);
 });

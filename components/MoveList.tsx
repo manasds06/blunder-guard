@@ -6,7 +6,7 @@ type Props = {
   onScrub: (index: number | null) => void;
 };
 
-/** SAN move list with click-to-scrub (view-only). */
+/** SAN move list with click-to-scrub (view-only). Card chrome comes from the parent tab container. */
 export function MoveList({ history, viewIndex, onScrub }: Props) {
   const pairs: {
     num: number;
@@ -26,10 +26,9 @@ export function MoveList({ history, viewIndex, onScrub }: Props) {
   }
 
   return (
-    <div className="card flex h-64 flex-col p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="label">moves</span>
-        {viewIndex !== null && (
+    <div className="flex h-72 flex-col">
+      {viewIndex !== null && (
+        <div className="mb-2 flex justify-end">
           <button
             type="button"
             className="font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--accent)] hover:underline"
@@ -37,13 +36,13 @@ export function MoveList({ history, viewIndex, onScrub }: Props) {
           >
             live →
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto font-[family-name:var(--font-mono)] text-[0.8125rem]">
         {pairs.length === 0 && (
-          <p className="text-[var(--muted)]">No moves yet.</p>
+          <p className="text-sm text-[var(--muted)]">No moves yet.</p>
         )}
-        <ol className="space-y-0.5">
+        <ol className="space-y-0.5" data-testid="move-list">
           {pairs.map((p) => (
             <li key={p.num} className="flex items-center gap-1">
               <span className="w-7 text-right text-[var(--muted)]">

@@ -6,12 +6,14 @@ export default defineConfig({
   fullyParallel: false,
   retries: 1,
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    // Next 16 dev only allows the `localhost` origin by default; 127.0.0.1
+    // gets its client JS blocked and the page never hydrates.
+    baseURL: "http://localhost:3000",
     trace: "on-first-retry",
   },
   webServer: {
     command: "npm run dev",
-    url: "http://127.0.0.1:3000",
+    url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 120_000,
   },

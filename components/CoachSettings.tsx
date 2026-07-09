@@ -54,8 +54,7 @@ export function CoachSettings({
   const options = ALL_PROVIDERS;
 
   return (
-    <div className="card p-4 text-sm">
-      <p className="label mb-3">settings</p>
+    <div className="text-sm">
       <label className="mb-3 flex cursor-pointer items-center justify-between gap-2">
         <span className="text-[0.8125rem]">Blunder Check mode</span>
         <input

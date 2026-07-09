@@ -2,18 +2,41 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameBoard } from "@/components/GameBoard";
-import { GameControls } from "@/components/GameControls";
+import { ActionBar } from "@/components/ActionBar";
+import { BotSetup } from "@/components/BotSetup";
+import { PlayerBar } from "@/components/PlayerBar";
 import { MoveList } from "@/components/MoveList";
 import { CoachBanner } from "@/components/CoachBanner";
 import { CoachPanel } from "@/components/CoachPanel";
 import { CoachSettings } from "@/components/CoachSettings";
 import { BlunderCheckModal } from "@/components/BlunderCheckModal";
-import { PersonalityPicker } from "@/components/PersonalityPicker";
-import { useChessGame } from "@/hooks/useChessGame";
+import { useChessGame, type GameStatus } from "@/hooks/useChessGame";
 import { useCoach } from "@/hooks/useCoach";
 import { quickBlunderCheck } from "@/lib/coach/detector";
 import { getPlayEngine } from "@/lib/engine/stockfish";
+import { getPersonality } from "@/lib/engine/personalities";
 import type { LlmProviderId } from "@/lib/llm/provider";
+
+const TABS = ["coach", "moves", "opponent", "settings"] as const;
+type Tab = (typeof TABS)[number];
+
+function botStatusText(engineReady: boolean, status: GameStatus): string {
+  if (!engineReady) return "loading engine…";
+  switch (status) {
+    case "thinking":
+      return "thinking";
+    case "checkmate":
+      return "checkmate";
+    case "stalemate":
+      return "stalemate";
+    case "draw":
+      return "draw";
+    case "resigned":
+      return "resigned";
+    default:
+      return "ready";
+  }
+}
 
 export function PlayScreen() {
   const game = useChessGame({ botElo: 800, playerColor: "w" });
@@ -30,6 +53,7 @@ export function PlayScreen() {
     gameOver,
   });
 
+  const [tab, setTab] = useState<Tab>("coach");
   const [blunderCheckOn, setBlunderCheckOn] = useState(true);
   const [pendingMove, setPendingMove] = useState<{
     from: string;
@@ -123,9 +147,28 @@ export function PlayScreen() {
     );
   }
 
+  const persona = game.personalityId
+    ? getPersonality(game.personalityId)
+    : undefined;
+  const botName = persona?.name ?? "Stockfish";
+  const botSubtitle = persona
+    ? `${game.botElo} elo · ${persona.style}`
+    : `${game.botElo} elo`;
+
+  const yourStatus = checking
+    ? "blunder check…"
+    : game.coachReviewActive
+      ? "reviewing"
+      : game.isPlayersTurn && game.status === "playing"
+        ? "your turn"
+        : gameOver
+          ? "game over"
+          : "waiting";
+
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_300px]">
-      <div className="flex flex-col items-center gap-4">
+    <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      {/* ——— Board column ——— */}
+      <div className="flex flex-col items-center gap-3">
         <CoachBanner
           report={showBanner ? latest?.report : undefined}
           explanation={
@@ -169,6 +212,18 @@ export function PlayScreen() {
             ← back to live position
           </button>
         )}
+
+        <PlayerBar
+          name={botName}
+          subtitle={botSubtitle}
+          hue={persona?.hue ?? 45}
+          initial={botName.slice(0, 1)}
+          active={game.status === "thinking"}
+          thinking={game.status === "thinking"}
+          statusText={botStatusText(game.engineReady, game.status)}
+          statusTestId="game-status"
+        />
+
         <GameBoard
           fen={game.fen}
           orientation={game.playerColor === "w" ? "white" : "black"}
@@ -177,70 +232,104 @@ export function PlayScreen() {
           hintArrow={game.hintArrow}
           onMove={onMove}
         />
-        <p
-          className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]"
-          data-testid="turn-indicator"
-        >
-          {checking
-            ? "Running Blunder Check…"
-            : game.coachReviewActive
-              ? "Reviewing best move — continue when ready"
-              : game.status === "thinking"
-                ? "Bot thinking…"
-                : game.isPlayersTurn
-                  ? "Your turn — drag a piece"
-                  : game.status === "playing"
-                    ? "Waiting…"
-                    : `Game over: ${game.status}`}
-        </p>
+
+        <PlayerBar
+          name="You"
+          subtitle={game.playerColor === "w" ? "white pieces" : "black pieces"}
+          hue={null}
+          initial="Y"
+          active={
+            game.isPlayersTurn && game.status === "playing" && !checking
+          }
+          statusText={yourStatus}
+          statusTestId="turn-indicator"
+        />
+
+        <div className="w-full max-w-[560px]">
+          <ActionBar
+            status={game.status}
+            hintsRemaining={game.hintsRemaining}
+            onNewGame={() => void game.newGame()}
+            onResign={game.resign}
+            onTakeback={game.takeback}
+            onHint={() => void game.requestHint()}
+          />
+        </div>
+
         {gameOver && game.botLine && (
           <p className="text-sm text-[var(--accent)]">“{game.botLine}”</p>
         )}
       </div>
 
-      <aside className="flex flex-col gap-4">
-        <GameControls
-          botElo={game.botElo}
-          playerColor={game.playerColor}
-          status={game.status}
-          hintsRemaining={game.hintsRemaining}
-          engineReady={game.engineReady}
-          onBotElo={(elo) => {
-            void game.newGame(game.playerColor, elo, null);
-          }}
-          onColor={(c) => {
-            void game.newGame(c, game.botElo, game.personalityId);
-          }}
-          onNewGame={() => void game.newGame()}
-          onResign={game.resign}
-          onTakeback={game.takeback}
-          onHint={() => void game.requestHint()}
-        />
-        <PersonalityPicker
-          selectedId={game.personalityId}
-          onSelect={game.selectPersonality}
-        />
-        <CoachPanel
-          items={coach.items}
-          activePly={coach.latestPly}
-          onSelect={(ply) => {
-            coach.setLatestPly(ply);
-            setBannerDismissed(false);
-            setBestMoveShown(false);
-            game.clearCoachReview();
-          }}
-          summary={coach.summary}
-          gameOver={gameOver}
-        />
-        <CoachSettings
-          available={availableLlms}
-          onChange={(s) => setBlunderCheckOn(s.blunderCheckMode)}
-        />
-        <MoveList
-          history={game.history}
-          viewIndex={game.viewIndex}
-          onScrub={game.scrubTo}
-        />
+      {/* ——— Tabbed sidebar ——— */}
+      <aside className="flex flex-col">
+        <div className="card flex min-h-[28rem] flex-col overflow-hidden">
+          <div className="grid grid-cols-4 border-b border-[var(--border)]">
+            {TABS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`relative px-2 py-2.5 font-[family-name:var(--font-mono)] text-[0.625rem] uppercase tracking-[0.12em] transition-colors ${
+                  tab === t
+                    ? "text-[var(--fg)]"
+                    : "text-[var(--muted)] hover:text-[var(--fg)]"
+                }`}
+                onClick={() => setTab(t)}
+                data-testid={`tab-${t}`}
+              >
+                {t}
+                {tab === t && (
+                  <span className="absolute inset-x-3 bottom-0 h-px bg-[var(--accent)]" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Keep all tabs mounted so state (settings, scroll) survives switches */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className={tab === "coach" ? "" : "hidden"}>
+              <CoachPanel
+                items={coach.items}
+                activePly={coach.latestPly}
+                onSelect={(ply) => {
+                  coach.setLatestPly(ply);
+                  setBannerDismissed(false);
+                  setBestMoveShown(false);
+                  game.clearCoachReview();
+                }}
+                summary={coach.summary}
+                gameOver={gameOver}
+              />
+            </div>
+            <div className={tab === "moves" ? "" : "hidden"}>
+              <MoveList
+                history={game.history}
+                viewIndex={game.viewIndex}
+                onScrub={game.scrubTo}
+              />
+            </div>
+            <div className={tab === "opponent" ? "" : "hidden"}>
+              <BotSetup
+                botElo={game.botElo}
+                playerColor={game.playerColor}
+                personalityId={game.personalityId}
+                onBotElo={(elo) => {
+                  void game.newGame(game.playerColor, elo, null);
+                }}
+                onColor={(c) => {
+                  void game.newGame(c, game.botElo, game.personalityId);
+                }}
+                onSelectPersonality={game.selectPersonality}
+              />
+            </div>
+            <div className={tab === "settings" ? "" : "hidden"}>
+              <CoachSettings
+                available={availableLlms}
+                onChange={(s) => setBlunderCheckOn(s.blunderCheckMode)}
+              />
+            </div>
+          </div>
+        </div>
       </aside>
 
       <BlunderCheckModal

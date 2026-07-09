@@ -58,14 +58,7 @@ export function CoachPanel({
   );
 
   return (
-    <div className="card flex flex-col gap-3 p-4">
-      <div className="flex items-center justify-between">
-        <span className="label">feed</span>
-        <span className="font-[family-name:var(--font-mono)] text-[0.625rem] text-[var(--muted)]">
-          auto-explained
-        </span>
-      </div>
-
+    <div className="flex flex-col gap-3">
       {gameOver && summary && (
         <div className="rounded-md border border-[var(--border)] bg-[var(--bg)] p-3">
           <p className="label">post-game</p>
@@ -77,12 +70,12 @@ export function CoachPanel({
       )}
 
       <ul
-        className="max-h-56 space-y-1 overflow-y-auto"
+        className="max-h-72 space-y-1 overflow-y-auto"
         data-testid="coach-feed"
       >
         {flagged.length === 0 && (
           <li className="text-sm text-[var(--muted)]">
-            Your moves will list here.
+            Play a move — every verdict lands here. Click one to revisit it.
           </li>
         )}
         {flagged.map((item) => {
