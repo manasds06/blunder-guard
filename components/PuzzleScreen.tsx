@@ -253,8 +253,14 @@ export function PuzzleScreen() {
       position: fen,
       boardOrientation: orientation,
       allowDragging: phase === "playing",
+      darkSquareStyle: { backgroundColor: "#3d3d47" },
+      lightSquareStyle: { backgroundColor: "#8a8a96" },
+      darkSquareNotationStyle: { color: "#8a8a96", fontSize: "11px" },
+      lightSquareNotationStyle: { color: "#3d3d47", fontSize: "11px" },
       boardStyle: {
-        borderRadius: "4px",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--border-strong)",
         width: "100%",
         maxWidth: "520px",
       },
@@ -272,34 +278,56 @@ export function PuzzleScreen() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_280px]">
       <div className="flex flex-col items-center gap-4">
-        <div className="flex flex-wrap items-center gap-3 text-sm">
+        <div className="flex w-full max-w-[520px] flex-wrap items-center gap-x-5 gap-y-1 font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--muted)]">
           <span>
-            Puzzle rating: <strong data-testid="puzzle-rating">{rating}</strong>
+            rating{" "}
+            <strong
+              className="font-semibold text-[var(--fg)]"
+              data-testid="puzzle-rating"
+            >
+              {rating}
+            </strong>
           </span>
           <span>
-            Session streak: <strong>{sessionStreak}</strong>
+            streak{" "}
+            <strong className="font-semibold text-[var(--fg)]">
+              {sessionStreak}
+            </strong>
           </span>
           <span>
-            Daily: {dailyCount}/{dailyGoal} · streak {streak}
+            daily{" "}
+            <strong className="font-semibold text-[var(--fg)]">
+              {dailyCount}/{dailyGoal}
+            </strong>{" "}
+            · day streak {streak}
           </span>
-          <span className="text-[var(--muted)]">
-            {orientation === "white" ? "White" : "Black"} to move
+          <span className="ml-auto text-[var(--fg)]/70">
+            {orientation} to move
           </span>
         </div>
         <div className="w-full max-w-[520px] aspect-square">
           <Chessboard options={boardOptions} />
         </div>
-        <p className="text-sm" data-testid="puzzle-status">
-          {phase === "loading" && "Loading puzzle…"}
-          {phase === "playing" && "Find the best move"}
-          {phase === "solved" && "Solved!"}
-          {phase === "failed" && "Incorrect — solution shown"}
+        <p
+          className={`font-[family-name:var(--font-mono)] text-xs ${
+            phase === "solved"
+              ? "text-[var(--ok)]"
+              : phase === "failed"
+                ? "text-[var(--danger)]"
+                : "text-[var(--muted)]"
+          }`}
+          data-testid="puzzle-status"
+        >
+          {phase === "loading" && "loading puzzle…"}
+          {phase === "playing" && "find the best move"}
+          {phase === "solved" && "solved"}
+          {phase === "failed" && "incorrect — solution shown"}
         </p>
         {(phase === "solved" || phase === "failed") && (
           <div className="flex gap-2">
             <button
               type="button"
-              className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg)]"
+              className="btn btn-primary"
               onClick={next}
               data-testid="next-puzzle"
             >
@@ -308,7 +336,7 @@ export function PuzzleScreen() {
             {phase === "failed" && (
               <button
                 type="button"
-                className="rounded border border-[var(--border)] px-4 py-2 text-sm"
+                className="btn btn-ghost"
                 onClick={() => void explainFail()}
               >
                 Explain
@@ -317,30 +345,33 @@ export function PuzzleScreen() {
           </div>
         )}
         {explanation && (
-          <p className="max-w-lg text-sm text-[var(--fg)]/90">{explanation}</p>
+          <p className="card max-w-lg p-4 text-sm leading-relaxed text-[var(--fg)]/90">
+            {explanation}
+          </p>
         )}
       </div>
 
       <aside className="flex flex-col gap-4">
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 text-sm">
-          <label className="mb-3 flex items-center justify-between">
-            <span>Practice by theme (no rating)</span>
+        <div className="card p-4 text-sm">
+          <label className="mb-3 flex cursor-pointer items-center justify-between gap-2">
+            <span className="text-[0.8125rem]">Practice by theme</span>
             <input
               type="checkbox"
+              className="h-3.5 w-3.5 accent-[var(--accent)]"
               checked={practiceMode}
               onChange={(e) => setPracticeMode(e.target.checked)}
             />
           </label>
-          <p className="mb-2 text-[var(--muted)]">Themes</p>
-          <div className="flex flex-wrap gap-1">
+          <p className="label mb-2">themes</p>
+          <div className="flex flex-wrap gap-1.5">
             {CURATED_THEMES.map((t) => (
               <button
                 key={t}
                 type="button"
-                className={`rounded px-2 py-0.5 text-xs border ${
+                className={`rounded-md border px-2 py-1 font-[family-name:var(--font-mono)] text-[0.625rem] transition-colors ${
                   themeFilter.includes(t)
-                    ? "border-[var(--accent)] bg-[var(--accent)]/20"
-                    : "border-[var(--border)]"
+                    ? "border-[var(--accent)]/50 bg-[var(--accent-dim)] text-[var(--accent)]"
+                    : "border-[var(--border)] text-[var(--muted)] hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
                 }`}
                 onClick={() => toggleTheme(t)}
               >
@@ -350,19 +381,21 @@ export function PuzzleScreen() {
           </div>
           <button
             type="button"
-            className="mt-3 w-full rounded border border-[var(--border)] py-1.5 text-xs"
+            className="btn btn-ghost mt-3 w-full text-xs"
             onClick={() => void startPuzzle(pool, rating)}
           >
             Apply filters
           </button>
         </div>
         {puzzle && (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 text-sm text-[var(--muted)]">
-            <p>
-              Puzzle <span className="text-[var(--fg)]">{puzzle.id}</span> ·{" "}
-              {puzzle.rating} Elo
+          <div className="card p-4">
+            <p className="label">current puzzle</p>
+            <p className="mt-2 font-[family-name:var(--font-mono)] text-xs text-[var(--fg)]/80">
+              {puzzle.id} · {puzzle.rating} elo
             </p>
-            <p className="mt-1">{puzzle.themes.join(", ")}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              {puzzle.themes.join(", ")}
+            </p>
           </div>
         )}
       </aside>

@@ -54,21 +54,22 @@ export function CoachSettings({
   const options = ALL_PROVIDERS;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4 text-sm">
-      <h3 className="mb-3 font-semibold text-[var(--accent)]">Settings</h3>
-      <label className="mb-3 flex items-center justify-between gap-2">
-        <span>Blunder Check mode</span>
+    <div className="card p-4 text-sm">
+      <p className="label mb-3">settings</p>
+      <label className="mb-3 flex cursor-pointer items-center justify-between gap-2">
+        <span className="text-[0.8125rem]">Blunder Check mode</span>
         <input
           type="checkbox"
+          className="h-3.5 w-3.5 accent-[var(--accent)]"
           checked={settings.blunderCheckMode}
           onChange={(e) => void update({ blunderCheckMode: e.target.checked })}
           data-testid="blunder-check-toggle"
         />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-[var(--muted)]">Coach LLM</span>
+      <label className="flex flex-col gap-1.5">
+        <span className="label">coach llm</span>
         <select
-          className="rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5"
+          className="field"
           value={settings.llmProvider}
           onChange={(e) =>
             void update({ llmProvider: e.target.value as LlmProviderId })
@@ -83,19 +84,21 @@ export function CoachSettings({
           ))}
         </select>
       </label>
-      <p className="mt-2 text-xs text-[var(--muted)]">
+      <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">
         Fully local: install{" "}
         <a
-          className="text-[var(--accent)] underline"
+          className="text-[var(--fg)]/80 underline decoration-[var(--border-strong)] underline-offset-2 hover:text-[var(--accent)]"
           href="https://ollama.com"
           target="_blank"
           rel="noreferrer"
         >
           Ollama
         </a>
-        , run <code>ollama pull llama3.2</code>, set{" "}
-        <code>LLM_PROVIDER=ollama</code>. No keys needed. If the LLM is down,
-        template explanations are used instead.
+        , run{" "}
+        <code className="font-[family-name:var(--font-mono)] text-[var(--fg)]/70">
+          ollama pull llama3.2
+        </code>
+        . No keys needed — templates cover any LLM downtime.
       </p>
     </div>
   );

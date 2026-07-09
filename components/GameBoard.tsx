@@ -27,8 +27,8 @@ export function GameBoard({
   const squareStyles = useMemo(() => {
     const styles: Record<string, React.CSSProperties> = {};
     if (lastMove) {
-      styles[lastMove.from] = { backgroundColor: "rgba(250, 204, 21, 0.45)" };
-      styles[lastMove.to] = { backgroundColor: "rgba(250, 204, 21, 0.65)" };
+      styles[lastMove.from] = { backgroundColor: "rgba(223, 169, 63, 0.28)" };
+      styles[lastMove.to] = { backgroundColor: "rgba(223, 169, 63, 0.45)" };
     }
     return styles;
   }, [lastMove]);
@@ -39,7 +39,7 @@ export function GameBoard({
       {
         startSquare: hintArrow.from,
         endSquare: hintArrow.to,
-        color: "rgb(34, 197, 94)",
+        color: "rgba(76, 183, 130, 0.9)",
       },
     ];
   }, [hintArrow]);
@@ -53,9 +53,16 @@ export function GameBoard({
       squareStyles,
       arrows,
       allowDrawingArrows: false,
+      // Graphite board — matches the app's near-black surfaces
+      darkSquareStyle: { backgroundColor: "#3d3d47" },
+      lightSquareStyle: { backgroundColor: "#8a8a96" },
+      darkSquareNotationStyle: { color: "#8a8a96", fontSize: "11px" },
+      lightSquareNotationStyle: { color: "#3d3d47", fontSize: "11px" },
+      dropSquareStyle: { boxShadow: "inset 0 0 0 2px rgba(223,169,63,0.8)" },
       boardStyle: {
-        borderRadius: "4px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--border-strong)",
         width: "100%",
         maxWidth: "560px",
       },

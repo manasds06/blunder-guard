@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
 
-const display = Fraunces({
+const display = Space_Grotesk({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const sans = Source_Sans_3({
+const sans = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+});
+
+const mono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +32,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} h-full`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable} h-full`}
+    >
       <body className="min-h-full flex flex-col font-[family-name:var(--font-sans)] antialiased">
         <Nav />
         <main className="flex flex-1 flex-col">{children}</main>

@@ -28,8 +28,12 @@ export function AuthMenu() {
 
   if (!configured) {
     return (
-      <span className="hidden text-xs text-[var(--muted)] sm:inline" title="Set NEXT_PUBLIC_SUPABASE_URL + ANON_KEY">
-        Local mode
+      <span
+        className="hidden items-center gap-1.5 font-[family-name:var(--font-mono)] text-[0.625rem] uppercase tracking-[0.12em] text-[var(--muted)] sm:inline-flex"
+        title="Set NEXT_PUBLIC_SUPABASE_URL + ANON_KEY"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--ok)]" aria-hidden />
+        local
       </span>
     );
   }
@@ -65,7 +69,7 @@ export function AuthMenu() {
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-28 rounded border border-[var(--border)] bg-[var(--bg)] px-1 py-0.5 sm:w-36"
+        className="field w-28 px-2 py-1 text-xs sm:w-36"
       />
       <button type="button" className="hover:underline" onClick={() => void signIn()}>
         Sign in

@@ -8,8 +8,13 @@ type Props = {
 
 /** SAN move list with click-to-scrub (view-only). */
 export function MoveList({ history, viewIndex, onScrub }: Props) {
-  const pairs: { num: number; white?: string; black?: string; wi: number; bi?: number }[] =
-    [];
+  const pairs: {
+    num: number;
+    white?: string;
+    black?: string;
+    wi: number;
+    bi?: number;
+  }[] = [];
   for (let i = 0; i < history.length; i += 2) {
     pairs.push({
       num: i / 2 + 1,
@@ -21,53 +26,57 @@ export function MoveList({ history, viewIndex, onScrub }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-3 h-64 overflow-y-auto font-mono text-sm">
-      <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-[var(--muted)]">
-        <span>Moves</span>
+    <div className="card flex h-64 flex-col p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="label">moves</span>
         {viewIndex !== null && (
           <button
             type="button"
-            className="text-[var(--accent)] hover:underline"
+            className="font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--accent)] hover:underline"
             onClick={() => onScrub(null)}
           >
-            Back to live
+            live →
           </button>
         )}
       </div>
-      {pairs.length === 0 && (
-        <p className="text-[var(--muted)]">No moves yet.</p>
-      )}
-      <ol className="space-y-1">
-        {pairs.map((p) => (
-          <li key={p.num} className="flex gap-2">
-            <span className="w-6 text-[var(--muted)]">{p.num}.</span>
-            <button
-              type="button"
-              className={`px-1 rounded ${
-                viewIndex === p.wi
-                  ? "bg-[var(--accent)] text-[var(--bg)]"
-                  : "hover:bg-white/10"
-              }`}
-              onClick={() => onScrub(p.wi)}
-            >
-              {p.white}
-            </button>
-            {p.black && p.bi != null && (
+      <div className="flex-1 overflow-y-auto font-[family-name:var(--font-mono)] text-[0.8125rem]">
+        {pairs.length === 0 && (
+          <p className="text-[var(--muted)]">No moves yet.</p>
+        )}
+        <ol className="space-y-0.5">
+          {pairs.map((p) => (
+            <li key={p.num} className="flex items-center gap-1">
+              <span className="w-7 text-right text-[var(--muted)]">
+                {p.num}.
+              </span>
               <button
                 type="button"
-                className={`px-1 rounded ${
-                  viewIndex === p.bi
+                className={`rounded px-1.5 py-0.5 transition-colors ${
+                  viewIndex === p.wi
                     ? "bg-[var(--accent)] text-[var(--bg)]"
-                    : "hover:bg-white/10"
+                    : "hover:bg-white/5"
                 }`}
-                onClick={() => onScrub(p.bi!)}
+                onClick={() => onScrub(p.wi)}
               >
-                {p.black}
+                {p.white}
               </button>
-            )}
-          </li>
-        ))}
-      </ol>
+              {p.black && p.bi != null && (
+                <button
+                  type="button"
+                  className={`rounded px-1.5 py-0.5 transition-colors ${
+                    viewIndex === p.bi
+                      ? "bg-[var(--accent)] text-[var(--bg)]"
+                      : "hover:bg-white/5"
+                  }`}
+                  onClick={() => onScrub(p.bi!)}
+                >
+                  {p.black}
+                </button>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }

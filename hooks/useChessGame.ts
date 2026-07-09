@@ -68,6 +68,11 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     from: string;
     to: string;
   } | null>(null);
+  /** Coach "show best move" — board freezes on fenBefore with an arrow */
+  const [coachReview, setCoachReview] = useState<{
+    fen: string;
+    arrow: { from: string; to: string };
+  } | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(
     null,
   );
@@ -232,6 +237,8 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
       promotion: "q" | "r" | "b" | "n" = "q",
     ): boolean => {
       if (viewIndex !== null) return false;
+      setCoachReview(null);
+      setHintArrow(null);
       const chess = chessRef.current;
       if (status !== "playing" && status !== "thinking") return false;
       if (chess.turn() !== playerColor) return false;
@@ -266,6 +273,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
       setBotElo(persona?.elo ?? elo);
       setHintsUsed(0);
       setHintArrow(null);
+      setCoachReview(null);
       setLastMove(null);
       setViewIndex(null);
       setHistory([]);
@@ -323,6 +331,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
       const evaluation = await engine.evaluate(chess.fen(), { depth: 12 });
       const best = evaluation.bestLine[0];
       if (!best || best.length < 4) return;
+      setCoachReview(null);
       setHintArrow({ from: best.slice(0, 2), to: best.slice(2, 4) });
       setHintsUsed((h) => h + 1);
     } catch (e) {
@@ -330,8 +339,23 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     }
   }, [hintsUsed, playerColor]);
 
+  /** Show engine best move from a coach report (position before the played move). */
+  const showBestMove = useCallback((fenBefore: string, uci: string) => {
+    if (!uci || uci.length < 4) return;
+    setViewIndex(null);
+    setCoachReview({
+      fen: fenBefore,
+      arrow: { from: uci.slice(0, 2), to: uci.slice(2, 4) },
+    });
+  }, []);
+
+  const clearCoachReview = useCallback(() => {
+    setCoachReview(null);
+  }, []);
+
   /** View-only scrub through earlier positions */
   const scrubTo = useCallback((index: number | null) => {
+    setCoachReview(null);
     if (index === null) {
       setViewIndex(null);
       setFen(chessRef.current.fen());
@@ -346,8 +370,9 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     setFen(temp.fen());
   }, []);
 
-  const displayFen =
-    viewIndex === null
+  const displayFen = coachReview
+    ? coachReview.fen
+    : viewIndex === null
       ? fen
       : (() => {
           const temp = new Chess();
@@ -358,9 +383,12 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
           return temp.fen();
         })();
 
+  const displayArrow = coachReview?.arrow ?? hintArrow;
+
   const isPlayersTurn =
     status === "playing" &&
     viewIndex === null &&
+    !coachReview &&
     chessRef.current.turn() === playerColor;
 
   return {
@@ -373,7 +401,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     status,
     hintsUsed,
     hintsRemaining: Math.max(0, 3 - hintsUsed),
-    hintArrow,
+    hintArrow: displayArrow,
     lastMove,
     engineReady,
     hydrated,
@@ -383,13 +411,19 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     resign,
     takeback,
     requestHint,
+    showBestMove,
+    clearCoachReview,
+    coachReviewActive: coachReview != null,
     scrubTo,
     setBotElo,
     setPlayerColor,
     personalityId,
     selectPersonality,
     botLine,
-    clearHint: () => setHintArrow(null),
+    clearHint: () => {
+      setHintArrow(null);
+      setCoachReview(null);
+    },
     pgn: () => chessRef.current.pgn(),
   };
 }

@@ -103,7 +103,17 @@ export function OpeningsScreen() {
       position: fen,
       boardOrientation: line.side,
       allowDragging: ply < line.ucis.length,
-      boardStyle: { width: "100%", maxWidth: "480px", borderRadius: "4px" },
+      darkSquareStyle: { backgroundColor: "#3d3d47" },
+      lightSquareStyle: { backgroundColor: "#8a8a96" },
+      darkSquareNotationStyle: { color: "#8a8a96", fontSize: "11px" },
+      lightSquareNotationStyle: { color: "#3d3d47", fontSize: "11px" },
+      boardStyle: {
+        width: "100%",
+        maxWidth: "480px",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--border-strong)",
+      },
       onPieceDrop: onDrop,
     }),
     [fen, line, ply, onDrop],
@@ -112,35 +122,42 @@ export function OpeningsScreen() {
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_280px]">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="font-[family-name:var(--font-display)] text-2xl text-[var(--accent)]">
-          Opening trainer
-        </h1>
+        <div className="w-full max-w-[480px]">
+          <p className="label">repertoire drills</p>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight">
+            Opening trainer
+          </h1>
+        </div>
         <div className="w-full max-w-[480px] aspect-square">
           <Chessboard options={options} />
         </div>
-        <p className="text-sm" data-testid="opening-status">
+        <p
+          className="font-[family-name:var(--font-mono)] text-xs text-[var(--fg)]/80"
+          data-testid="opening-status"
+        >
           {message}
         </p>
         {idea && (
-          <p className="max-w-md text-sm text-[var(--muted)]">
-            Why this move? {idea}
+          <p className="card max-w-md p-3 text-xs leading-relaxed text-[var(--muted)]">
+            <span className="text-[var(--accent)]">Why this move?</span> {idea}
           </p>
         )}
       </div>
-      <aside className="flex flex-col gap-2">
+      <aside className="flex flex-col gap-1.5">
+        <p className="label mb-1.5">lines</p>
         {REPERTOIRE.map((l) => (
           <button
             key={l.id}
             type="button"
-            className={`rounded border px-3 py-2 text-left text-sm ${
+            className={`rounded-md border px-3 py-2.5 text-left transition-colors ${
               line.id === l.id
-                ? "border-[var(--accent)] bg-[var(--accent)]/15"
-                : "border-[var(--border)] bg-[var(--panel)]"
+                ? "border-[var(--accent)]/50 bg-[var(--accent-dim)]"
+                : "border-[var(--border)] bg-[var(--panel)] hover:border-[var(--border-strong)]"
             }`}
             onClick={() => resetLine(l)}
           >
-            <span className="font-semibold">{l.name}</span>
-            <span className="mt-0.5 block text-xs text-[var(--muted)]">
+            <span className="text-[0.8125rem] font-medium">{l.name}</span>
+            <span className="mt-0.5 block font-[family-name:var(--font-mono)] text-[0.625rem] uppercase tracking-[0.1em] text-[var(--muted)]">
               {l.side}
             </span>
           </button>

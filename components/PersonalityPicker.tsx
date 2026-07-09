@@ -12,35 +12,36 @@ type Props = {
 
 export function PersonalityPicker({ selectedId, onSelect }: Props) {
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
-      <h3 className="mb-3 text-sm font-semibold text-[var(--accent)]">
-        Bot personalities
-      </h3>
-      <div className="grid gap-2">
+    <div className="card p-4">
+      <p className="label mb-3">bot personalities</p>
+      <div className="grid gap-1.5">
         {PERSONALITIES.map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => onSelect(p)}
-            className={`flex gap-3 rounded border p-2 text-left text-sm ${
+            className={`flex items-center gap-3 rounded-md border p-2 text-left transition-colors ${
               selectedId === p.id
-                ? "border-[var(--accent)] bg-[var(--accent)]/10"
-                : "border-[var(--border)] hover:bg-white/5"
+                ? "border-[var(--accent)]/50 bg-[var(--accent-dim)]"
+                : "border-transparent hover:bg-white/[0.04]"
             }`}
             data-testid={`persona-${p.id}`}
           >
             <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[var(--bg)]"
-              style={{ background: `hsl(${p.hue} 55% 45%)` }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md font-[family-name:var(--font-mono)] text-xs font-semibold text-[var(--bg)]"
+              style={{ background: `hsl(${p.hue} 40% 62%)` }}
               aria-hidden
             >
               {p.name.slice(0, 1)}
             </span>
-            <span>
-              <span className="font-semibold">
-                {p.name} · {p.elo}
+            <span className="min-w-0">
+              <span className="flex items-baseline gap-2 text-[0.8125rem] font-medium">
+                {p.name}
+                <span className="font-[family-name:var(--font-mono)] text-[0.625rem] text-[var(--muted)]">
+                  {p.elo}
+                </span>
               </span>
-              <span className="mt-0.5 block text-xs text-[var(--muted)]">
+              <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">
                 {p.blurb}
               </span>
             </span>

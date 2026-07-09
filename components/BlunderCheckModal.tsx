@@ -14,27 +14,40 @@ export function BlunderCheckModal({ open, onPlayAnyway, onCancel }: Props) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       data-testid="blunder-check-modal"
     >
-      <div className="max-w-md rounded-lg border border-[var(--danger)]/40 bg-[var(--panel)] p-6 shadow-xl">
-        <h2 className="font-[family-name:var(--font-display)] text-xl text-[var(--danger)]">
-          Hold on — Blunder Check
+      <div
+        className="card w-full max-w-md p-6"
+        style={{ borderLeft: "2px solid var(--danger)" }}
+      >
+        <p className="label text-[var(--danger)]">blunder check</p>
+        <h2 className="mt-2 font-[family-name:var(--font-display)] text-xl font-medium tracking-tight">
+          Hold on.
         </h2>
-        <p className="mt-3 text-[var(--fg)]">
-          Run your Blunder Check before you commit:
+        <p className="mt-3 text-sm text-[var(--fg)]/85">
+          Run the checklist before you commit:
         </p>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-[var(--muted)]">
-          <li>Is this piece safe?</li>
-          <li>Are their pieces hanging?</li>
-          <li>Is my king safe?</li>
+        <ul className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+          {[
+            "Is this piece safe?",
+            "Are their pieces hanging?",
+            "Is my king safe?",
+          ].map((q, i) => (
+            <li key={q} className="flex items-baseline gap-2.5">
+              <span className="font-[family-name:var(--font-mono)] text-[0.625rem] text-[var(--danger)]">
+                0{i + 1}
+              </span>
+              {q}
+            </li>
+          ))}
         </ul>
         <div className="mt-6 flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg)]"
+            className="btn btn-primary"
             onClick={onCancel}
             data-testid="blunder-check-cancel"
           >
@@ -42,7 +55,7 @@ export function BlunderCheckModal({ open, onPlayAnyway, onCancel }: Props) {
           </button>
           <button
             type="button"
-            className="rounded border border-[var(--border)] px-4 py-2 text-sm"
+            className="btn btn-ghost"
             onClick={onPlayAnyway}
             data-testid="blunder-check-anyway"
           >

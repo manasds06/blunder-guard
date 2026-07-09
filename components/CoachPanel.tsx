@@ -6,15 +6,15 @@ const ICONS: Record<Classification, string> = {
   BLUNDER: "??",
   MISTAKE: "?",
   INACCURACY: "?!",
-  BEST: "✓",
+  BEST: "!",
   OK: "·",
-  BOOK: "📖",
+  BOOK: "·",
 };
 
 const COLORS: Record<Classification, string> = {
   BLUNDER: "text-[var(--danger)]",
-  MISTAKE: "text-orange-400",
-  INACCURACY: "text-yellow-400",
+  MISTAKE: "text-[#e8843f]",
+  INACCURACY: "text-[var(--accent)]",
   BEST: "text-[var(--ok)]",
   OK: "text-[var(--muted)]",
   BOOK: "text-[var(--muted)]",
@@ -29,17 +29,23 @@ export type CoachFeedItem = {
 
 type Props = {
   items: CoachFeedItem[];
-  onExplain: (ply: number) => void;
-  summary?: { blunders: number; mistakes: number; inaccuracies: number; best: number };
-  biggestLesson?: string;
+  activePly?: number | null;
+  onSelect: (ply: number) => void;
+  summary?: {
+    blunders: number;
+    mistakes: number;
+    inaccuracies: number;
+    best: number;
+  };
   gameOver: boolean;
 };
 
+/** Compact move feed — explanations auto-appear in the banner above the board. */
 export function CoachPanel({
   items,
-  onExplain,
+  activePly,
+  onSelect,
   summary,
-  biggestLesson,
   gameOver,
 }: Props) {
   const flagged = items.filter(
@@ -47,69 +53,67 @@ export function CoachPanel({
       i.report.classification === "BLUNDER" ||
       i.report.classification === "MISTAKE" ||
       i.report.classification === "INACCURACY" ||
-      i.report.classification === "BEST",
+      i.report.classification === "BEST" ||
+      i.report.classification === "OK",
   );
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
+    <div className="card flex flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-[family-name:var(--font-display)] text-lg text-[var(--accent)]">
-          Coach
-        </h2>
-        <span className="text-xs text-[var(--muted)]">Stockfish judges · LLM explains</span>
+        <span className="label">feed</span>
+        <span className="font-[family-name:var(--font-mono)] text-[0.625rem] text-[var(--muted)]">
+          auto-explained
+        </span>
       </div>
 
       {gameOver && summary && (
-        <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-3 text-sm">
-          <p className="font-semibold">Post-game</p>
-          <p className="mt-1 text-[var(--muted)]">
-            ?? {summary.blunders} · ? {summary.mistakes} · ?! {summary.inaccuracies} · ✓{" "}
-            {summary.best}
+        <div className="rounded-md border border-[var(--border)] bg-[var(--bg)] p-3">
+          <p className="label">post-game</p>
+          <p className="mt-1.5 font-[family-name:var(--font-mono)] text-xs text-[var(--fg)]/80">
+            ?? {summary.blunders} · ? {summary.mistakes} · ?!{" "}
+            {summary.inaccuracies} · ! {summary.best}
           </p>
-          {biggestLesson && (
-            <p className="mt-2 text-[var(--fg)]">{biggestLesson}</p>
-          )}
         </div>
       )}
 
-      <ul className="max-h-72 space-y-2 overflow-y-auto text-sm" data-testid="coach-feed">
+      <ul
+        className="max-h-56 space-y-1 overflow-y-auto"
+        data-testid="coach-feed"
+      >
         {flagged.length === 0 && (
-          <li className="text-[var(--muted)]">Make a move — classifications appear here.</li>
-        )}
-        {flagged.map((item) => (
-          <li
-            key={item.ply}
-            className="rounded border border-[var(--border)]/60 bg-[var(--bg)]/50 p-2"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className={COLORS[item.report.classification]}>
-                <span className="font-mono font-bold">
-                  {ICONS[item.report.classification]}
-                </span>{" "}
-                {item.report.san}{" "}
-                <span className="text-[var(--muted)]">
-                  ({item.report.classification.toLowerCase()}
-                  {item.report.theme !== "none" ? ` · ${item.report.theme}` : ""})
-                </span>
-              </span>
-              {item.report.classification !== "BEST" &&
-                item.report.classification !== "OK" && (
-                  <button
-                    type="button"
-                    className="shrink-0 rounded border border-[var(--border)] px-2 py-0.5 text-xs hover:bg-white/5 disabled:opacity-50"
-                    onClick={() => onExplain(item.ply)}
-                    disabled={item.explaining}
-                    data-testid="explain-btn"
-                  >
-                    {item.explaining ? "…" : item.explanation ? "Again" : "Explain"}
-                  </button>
-                )}
-            </div>
-            {item.explanation && (
-              <p className="mt-2 text-[var(--fg)]/90 leading-relaxed">{item.explanation}</p>
-            )}
+          <li className="text-sm text-[var(--muted)]">
+            Your moves will list here.
           </li>
-        ))}
+        )}
+        {flagged.map((item) => {
+          const active = activePly === item.ply;
+          return (
+            <li key={item.ply}>
+              <button
+                type="button"
+                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left font-[family-name:var(--font-mono)] text-xs transition-colors ${
+                  active
+                    ? "bg-[var(--accent-dim)] text-[var(--fg)]"
+                    : "hover:bg-white/5"
+                }`}
+                onClick={() => onSelect(item.ply)}
+              >
+                <span className={COLORS[item.report.classification]}>
+                  <span className="font-semibold">
+                    {ICONS[item.report.classification]}
+                  </span>{" "}
+                  <span className="text-[var(--fg)]/85">{item.report.san}</span>{" "}
+                  <span className="text-[var(--muted)]">
+                    {item.report.classification.toLowerCase()}
+                  </span>
+                </span>
+                {item.explaining && (
+                  <span className="text-[var(--muted)]">…</span>
+                )}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

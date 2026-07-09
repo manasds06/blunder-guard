@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GameBoard } from "@/components/GameBoard";
 import { GameControls } from "@/components/GameControls";
 import { MoveList } from "@/components/MoveList";
+import { CoachBanner } from "@/components/CoachBanner";
 import { CoachPanel } from "@/components/CoachPanel";
 import { CoachSettings } from "@/components/CoachSettings";
 import { BlunderCheckModal } from "@/components/BlunderCheckModal";
@@ -40,6 +41,8 @@ export function PlayScreen() {
     "claude",
     "gemini",
   ]);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [bestMoveShown, setBestMoveShown] = useState(false);
   const checkGen = useRef(0);
 
   useEffect(() => {
@@ -51,9 +54,23 @@ export function PlayScreen() {
       .catch(() => undefined);
   }, []);
 
+  // New coach verdict → show banner again
+  useEffect(() => {
+    if (coach.latestPly != null) {
+      setBannerDismissed(false);
+      setBestMoveShown(false);
+      game.clearCoachReview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coach.latestPly]);
+
+  const latest = coach.latestItem;
+  const showBanner = !bannerDismissed && (latest != null || gameOver);
+
   const commitMove = useCallback(
     (from: string, to: string) => {
       game.clearHint();
+      setBestMoveShown(false);
       return game.makeMove(from, to);
     },
     [game],
@@ -67,7 +84,6 @@ export function PlayScreen() {
         return commitMove(from, to);
       }
 
-      // Debounce / cancel in-flight checks
       const gen = ++checkGen.current;
       setChecking(true);
 
@@ -94,7 +110,6 @@ export function PlayScreen() {
         }
       })();
 
-      // Return false so the board snaps back until we commit
       return false;
     },
     [blunderCheckOn, commitMove, game.isPlayersTurn, game.liveFen],
@@ -111,27 +126,75 @@ export function PlayScreen() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_300px]">
       <div className="flex flex-col items-center gap-4">
+        <CoachBanner
+          report={showBanner ? latest?.report : undefined}
+          explanation={
+            showBanner
+              ? (latest?.explanation ??
+                (gameOver && !latest ? coach.biggestLesson : undefined))
+              : undefined
+          }
+          loading={Boolean(latest?.explaining)}
+          bestMoveShown={bestMoveShown}
+          onShowBestMove={
+            latest?.report.bestMove
+              ? () => {
+                  game.showBestMove(
+                    latest.report.fenBefore,
+                    latest.report.bestMove,
+                  );
+                  setBestMoveShown(true);
+                }
+              : undefined
+          }
+          onDismiss={
+            showBanner
+              ? () => {
+                  setBannerDismissed(true);
+                  setBestMoveShown(false);
+                  game.clearCoachReview();
+                }
+              : undefined
+          }
+        />
+        {game.coachReviewActive && (
+          <button
+            type="button"
+            className="font-[family-name:var(--font-mono)] text-[0.6875rem] uppercase tracking-[0.1em] text-[var(--accent)] hover:underline"
+            onClick={() => {
+              game.clearCoachReview();
+              setBestMoveShown(false);
+            }}
+          >
+            ← back to live position
+          </button>
+        )}
         <GameBoard
           fen={game.fen}
           orientation={game.playerColor === "w" ? "white" : "black"}
           allowMoves={game.isPlayersTurn && !checking && !pendingMove}
-          lastMove={game.lastMove}
+          lastMove={game.coachReviewActive ? null : game.lastMove}
           hintArrow={game.hintArrow}
           onMove={onMove}
         />
-        <p className="text-sm text-[var(--muted)]" data-testid="turn-indicator">
+        <p
+          className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]"
+          data-testid="turn-indicator"
+        >
           {checking
             ? "Running Blunder Check…"
-            : game.status === "thinking"
-              ? "Bot thinking…"
-              : game.isPlayersTurn
-                ? "Your turn — drag a piece"
-                : game.status === "playing"
-                  ? "Waiting…"
-                  : `Game over: ${game.status}`}
+            : game.coachReviewActive
+              ? "Reviewing best move — continue when ready"
+              : game.status === "thinking"
+                ? "Bot thinking…"
+                : game.isPlayersTurn
+                  ? "Your turn — drag a piece"
+                  : game.status === "playing"
+                    ? "Waiting…"
+                    : `Game over: ${game.status}`}
         </p>
         {gameOver && game.botLine && (
-          <p className="text-sm italic text-[var(--accent)]">{game.botLine}</p>
+          <p className="text-sm text-[var(--accent)]">“{game.botLine}”</p>
         )}
       </div>
 
@@ -159,9 +222,14 @@ export function PlayScreen() {
         />
         <CoachPanel
           items={coach.items}
-          onExplain={(ply) => void coach.onExplain(ply)}
+          activePly={coach.latestPly}
+          onSelect={(ply) => {
+            coach.setLatestPly(ply);
+            setBannerDismissed(false);
+            setBestMoveShown(false);
+            game.clearCoachReview();
+          }}
           summary={coach.summary}
-          biggestLesson={coach.biggestLesson}
           gameOver={gameOver}
         />
         <CoachSettings

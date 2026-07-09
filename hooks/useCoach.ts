@@ -1,5 +1,5 @@
 /**
- * useCoach — classifies user moves in the background and serves explanations.
+ * useCoach — classifies each user move, then auto-explains via LLM (or templates).
  * Pattern: side-effect hook; never blocks the bot's reply.
  */
 "use client";
@@ -21,16 +21,45 @@ export function useCoach(opts: {
 }) {
   const [items, setItems] = useState<CoachFeedItem[]>([]);
   const [biggestLesson, setBiggestLesson] = useState<string>();
+  const [latestPly, setLatestPly] = useState<number | null>(null);
   const analyzedLen = useRef(0);
+  const explainingPlies = useRef(new Set<number>());
 
   // Reset on new game (history cleared)
   useEffect(() => {
     if (opts.history.length === 0) {
       setItems([]);
       setBiggestLesson(undefined);
+      setLatestPly(null);
       analyzedLen.current = 0;
+      explainingPlies.current.clear();
     }
   }, [opts.history.length]);
+
+  const autoExplain = useCallback(async (ply: number, report: MistakeReport) => {
+    if (explainingPlies.current.has(ply)) return;
+    explainingPlies.current.add(ply);
+    setItems((prev) =>
+      prev.map((i) => (i.ply === ply ? { ...i, explaining: true } : i)),
+    );
+    try {
+      const settings = await loadSettings();
+      const result = await explainMistake(report, settings);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.ply === ply
+            ? { ...i, explaining: false, explanation: result.text }
+            : i,
+        ),
+      );
+    } catch {
+      setItems((prev) =>
+        prev.map((i) => (i.ply === ply ? { ...i, explaining: false } : i)),
+      );
+    } finally {
+      explainingPlies.current.delete(ply);
+    }
+  }, []);
 
   useEffect(() => {
     if (!opts.enabled) return;
@@ -42,7 +71,6 @@ export function useCoach(opts: {
       const engine = getPlayEngine();
       await engine.init();
 
-      // Replay from start to find fenBefore for each new ply
       const chess = new Chess();
       for (let i = 0; i < analyzedLen.current; i++) {
         chess.move(opts.history[i]!);
@@ -54,7 +82,6 @@ export function useCoach(opts: {
         const move = chess.move(san);
         if (!move) continue;
 
-        // Only classify the human's moves
         if (move.color !== opts.playerColor) {
           analyzedLen.current = i + 1;
           continue;
@@ -63,7 +90,10 @@ export function useCoach(opts: {
         try {
           const report = await analyzeUserMove(engine, fenBefore, san, 12);
           if (cancelled) return;
-          setItems((prev) => [...prev, { ply: i, report }]);
+          setItems((prev) => [...prev, { ply: i, report, explaining: true }]);
+          setLatestPly(i);
+          // Auto-explain — no click required
+          void autoExplain(i, report);
         } catch (e) {
           console.error("Coach analyze failed", e);
         }
@@ -74,24 +104,18 @@ export function useCoach(opts: {
     return () => {
       cancelled = true;
     };
-  }, [opts.history, opts.playerColor, opts.enabled]);
+  }, [opts.history, opts.playerColor, opts.enabled, autoExplain]);
 
-  const onExplain = useCallback(async (ply: number) => {
-    const item = items.find((i) => i.ply === ply);
-    if (!item) return;
-    setItems((prev) =>
-      prev.map((i) => (i.ply === ply ? { ...i, explaining: true } : i)),
-    );
-    const settings = await loadSettings();
-    const result = await explainMistake(item.report, settings);
-    setItems((prev) =>
-      prev.map((i) =>
-        i.ply === ply
-          ? { ...i, explaining: false, explanation: result.text }
-          : i,
-      ),
-    );
-  }, [items]);
+  const onExplain = useCallback(
+    async (ply: number) => {
+      const item = items.find((i) => i.ply === ply);
+      if (!item) return;
+      setLatestPly(ply);
+      if (item.explanation && !item.explaining) return;
+      await autoExplain(ply, item.report);
+    },
+    [items, autoExplain],
+  );
 
   const lessonStarted = useRef(false);
   useEffect(() => {
@@ -130,6 +154,11 @@ export function useCoach(opts: {
     })();
   }, [opts.gameOver, items]);
 
+  const latestItem =
+    latestPly == null
+      ? undefined
+      : items.find((i) => i.ply === latestPly);
+
   const summary = {
     blunders: items.filter((i) => i.report.classification === "BLUNDER").length,
     mistakes: items.filter((i) => i.report.classification === "MISTAKE").length,
@@ -138,7 +167,15 @@ export function useCoach(opts: {
     best: items.filter((i) => i.report.classification === "BEST").length,
   };
 
-  return { items, onExplain, summary, biggestLesson };
+  return {
+    items,
+    onExplain,
+    summary,
+    biggestLesson,
+    latestPly,
+    latestItem,
+    setLatestPly,
+  };
 }
 
 export type { MistakeReport };

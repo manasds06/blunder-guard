@@ -26,30 +26,31 @@ export function DashboardScreen() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl text-[var(--accent)]">
-        Progress
+      <p className="label">progress</p>
+      <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight">
+        Dashboard
       </h1>
-      <p className="mt-2 text-[var(--muted)]">
+      <p className="mt-2 text-sm text-[var(--muted)]">
         Blunders per game is the hero metric — fewer hangs, higher strength.
       </p>
 
       {data.empty && (
-        <p className="mt-8 rounded border border-[var(--border)] bg-[var(--panel)] p-6 text-[var(--muted)]">
+        <p className="card mt-8 p-6 text-sm text-[var(--muted)]">
           Play 3 games (and a few puzzles) to unlock trends.
         </p>
       )}
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-3">
+      <div className="mt-8 grid gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
         <Stat
-          label="Estimated strength"
+          label="estimated strength"
           value={data.estimatedStrength ? `${data.estimatedStrength}` : "—"}
         />
-        <Stat label="Games this week" value={String(data.gamesThisWeek)} />
-        <Stat label="Puzzle streak" value={String(data.puzzleStreak)} />
+        <Stat label="games this week" value={String(data.gamesThisWeek)} />
+        <Stat label="puzzle streak" value={String(data.puzzleStreak)} />
       </div>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Blunders per game</h2>
+        <p className="label mb-3">blunders per game</p>
         <Sparkline
           points={data.blundersPerGame.map((b) => b.blunders)}
           color="var(--danger)"
@@ -58,7 +59,7 @@ export function DashboardScreen() {
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Puzzle rating</h2>
+        <p className="label mb-3">puzzle rating</p>
         <Sparkline
           points={data.puzzleRatingHistory.map((p) => p.rating)}
           color="var(--accent)"
@@ -67,19 +68,22 @@ export function DashboardScreen() {
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-semibold">Win rate by bot Elo</h2>
+        <p className="label mb-3">win rate by bot elo</p>
         {data.winRateByElo.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No games recorded yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {data.winRateByElo.map((row) => {
               const pct = row.games ? Math.round((100 * row.wins) / row.games) : 0;
               return (
-                <li key={row.elo} className="flex items-center gap-3 text-sm">
-                  <span className="w-12 font-mono">{row.elo}</span>
-                  <div className="h-3 flex-1 overflow-hidden rounded bg-[var(--border)]">
+                <li
+                  key={row.elo}
+                  className="flex items-center gap-3 font-[family-name:var(--font-mono)] text-xs"
+                >
+                  <span className="w-12">{row.elo}</span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--border)]">
                     <div
-                      className="h-full bg-[var(--ok)]"
+                      className="h-full rounded-full bg-[var(--ok)]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -98,9 +102,11 @@ export function DashboardScreen() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
-      <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
-      <p className="mt-1 font-[family-name:var(--font-display)] text-2xl">{value}</p>
+    <div className="bg-[var(--panel)] p-5">
+      <p className="label">{label}</p>
+      <p className="mt-2 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight">
+        {value}
+      </p>
     </div>
   );
 }
@@ -130,8 +136,11 @@ function Sparkline({
     })
     .join(" ");
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full max-w-xl rounded border border-[var(--border)] bg-[var(--panel)]">
-      <polyline fill="none" stroke={color} strokeWidth={2} points={pts} />
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="w-full max-w-xl rounded-lg border border-[var(--border)] bg-[var(--panel)]"
+    >
+      <polyline fill="none" stroke={color} strokeWidth={1.5} points={pts} />
     </svg>
   );
 }

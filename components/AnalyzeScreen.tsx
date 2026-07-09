@@ -69,7 +69,17 @@ export function AnalyzeScreen() {
     () => ({
       id: "analyze-board",
       position: fen === "start" ? undefined : fen,
-      boardStyle: { width: "100%", maxWidth: "480px", borderRadius: "4px" },
+      darkSquareStyle: { backgroundColor: "#3d3d47" },
+      lightSquareStyle: { backgroundColor: "#8a8a96" },
+      darkSquareNotationStyle: { color: "#8a8a96", fontSize: "11px" },
+      lightSquareNotationStyle: { color: "#3d3d47", fontSize: "11px" },
+      boardStyle: {
+        width: "100%",
+        maxWidth: "480px",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--border-strong)",
+      },
       allowDragging: false,
     }),
     [fen],
@@ -78,11 +88,14 @@ export function AnalyzeScreen() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_320px]">
       <div className="flex flex-col gap-4">
-        <h1 className="font-[family-name:var(--font-display)] text-2xl text-[var(--accent)]">
-          Analyze
-        </h1>
+        <div>
+          <p className="label">full-game review</p>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight">
+            Analyze
+          </h1>
+        </div>
         <textarea
-          className="min-h-32 w-full rounded border border-[var(--border)] bg-[var(--panel)] p-3 font-mono text-sm"
+          className="field min-h-32 w-full bg-[var(--panel)] p-3 font-[family-name:var(--font-mono)] text-xs leading-relaxed"
           placeholder="Paste a PGN here…"
           value={pgn}
           onChange={(e) => setPgn(e.target.value)}
@@ -91,7 +104,7 @@ export function AnalyzeScreen() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg)] disabled:opacity-50"
+            className="btn btn-primary"
             disabled={running || !pgn.trim()}
             onClick={() => void runAnalysis(pgn)}
             data-testid="analyze-btn"
@@ -100,7 +113,7 @@ export function AnalyzeScreen() {
           </button>
           <button
             type="button"
-            className="rounded border border-[var(--border)] px-4 py-2 text-sm"
+            className="btn btn-ghost"
             disabled={running}
             onClick={() => void loadLastGame()}
           >
@@ -108,7 +121,7 @@ export function AnalyzeScreen() {
           </button>
           <button
             type="button"
-            className="rounded border border-[var(--border)] px-4 py-2 text-sm"
+            className="btn btn-ghost"
             disabled={running}
             onClick={() => {
               setPgn(SAMPLE_PGN);
@@ -119,7 +132,7 @@ export function AnalyzeScreen() {
         </div>
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {running && (
-          <div className="h-2 overflow-hidden rounded bg-[var(--border)]">
+          <div className="h-1 overflow-hidden rounded-full bg-[var(--border)]">
             <div
               className="h-full bg-[var(--accent)] transition-all"
               style={{
@@ -132,11 +145,12 @@ export function AnalyzeScreen() {
         )}
 
         {keyLesson && (
-          <div className="rounded border border-[var(--accent)]/40 bg-[var(--panel)] p-4">
-            <p className="text-xs uppercase tracking-wide text-[var(--accent)]">
-              One key lesson
-            </p>
-            <p className="mt-2 text-sm">{keyLesson}</p>
+          <div
+            className="card p-4"
+            style={{ borderLeft: "2px solid var(--accent)" }}
+          >
+            <p className="label text-[var(--accent)]">one key lesson</p>
+            <p className="mt-2 text-sm leading-relaxed">{keyLesson}</p>
           </div>
         )}
 
@@ -145,21 +159,25 @@ export function AnalyzeScreen() {
             <Chessboard options={boardOptions} />
           </div>
           {result && (
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-3 font-[family-name:var(--font-mono)] text-xs">
               <button
                 type="button"
-                className="rounded border border-[var(--border)] px-2 py-1"
+                className="btn btn-ghost px-2.5 py-1"
                 onClick={() => setCursor((c) => Math.max(0, c - 1))}
               >
                 ←
               </button>
-              <span>
-                Move {cursor + 1}/{result.moves.length} · Accuracy{" "}
-                {result.accuracy}%
+              <span className="text-[var(--muted)]">
+                move{" "}
+                <span className="text-[var(--fg)]">
+                  {cursor + 1}/{result.moves.length}
+                </span>{" "}
+                · accuracy{" "}
+                <span className="text-[var(--fg)]">{result.accuracy}%</span>
               </span>
               <button
                 type="button"
-                className="rounded border border-[var(--border)] px-2 py-1"
+                className="btn btn-ghost px-2.5 py-1"
                 onClick={() =>
                   setCursor((c) =>
                     Math.min((result?.moves.length ?? 1) - 1, c + 1),
@@ -177,31 +195,31 @@ export function AnalyzeScreen() {
       <aside className="flex flex-col gap-4">
         {result && (
           <>
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--panel)] p-4">
-              <h2 className="mb-2 font-semibold text-[var(--accent)]">
-                Top mistakes
-              </h2>
+            <div className="card p-4">
+              <p className="label mb-3">top mistakes</p>
               {result.topMistakes.length === 0 && (
                 <p className="text-sm text-[var(--muted)]">None flagged.</p>
               )}
               {result.topMistakes.map((m, idx) => (
                 <div
                   key={`${m.san}-${idx}`}
-                  className="mb-3 border-b border-[var(--border)] pb-3 text-sm last:border-0"
+                  className="mb-3 border-b border-[var(--border)] pb-3 text-sm last:mb-0 last:border-0 last:pb-0"
                 >
-                  <p>
-                    <span className="font-mono">{m.san}</span>{" "}
+                  <p className="font-[family-name:var(--font-mono)] text-xs">
+                    <span className="text-[var(--fg)]">{m.san}</span>{" "}
                     <span className="text-[var(--danger)]">
-                      {m.classification}
+                      {m.classification.toLowerCase()}
                     </span>{" "}
-                    ({(m.swingCp / 100).toFixed(1)} pawns)
+                    <span className="text-[var(--muted)]">
+                      {(m.swingCp / 100).toFixed(1)}p
+                    </span>
                   </p>
-                  <p className="text-[var(--muted)]">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     Best: {m.bestMove} · {m.theme}
                   </p>
                   <button
                     type="button"
-                    className="mt-1 text-xs text-[var(--accent)] hover:underline"
+                    className="mt-1.5 font-[family-name:var(--font-mono)] text-[0.6875rem] text-[var(--accent)] hover:underline"
                     onClick={() => {
                       void (async () => {
                         const settings = await loadSettings();
@@ -210,21 +228,25 @@ export function AnalyzeScreen() {
                       })();
                     }}
                   >
-                    Explain
+                    explain →
                   </button>
                   {explanations[idx] && (
-                    <p className="mt-2 text-[var(--fg)]/90">{explanations[idx]}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-[var(--fg)]/85">
+                      {explanations[idx]}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
-            <div className="max-h-80 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--panel)] p-3 font-mono text-sm">
+            <div className="card max-h-80 overflow-y-auto p-3 font-[family-name:var(--font-mono)] text-xs leading-relaxed">
               {result.moves.map((m) => (
                 <button
                   key={m.ply}
                   type="button"
-                  className={`mr-1 inline-block rounded px-1 ${
-                    cursor === m.ply ? "bg-[var(--accent)] text-[var(--bg)]" : ""
+                  className={`mr-1 inline-block rounded px-1 transition-colors ${
+                    cursor === m.ply
+                      ? "bg-[var(--accent)] text-[var(--bg)]"
+                      : "hover:bg-white/5"
                   }`}
                   onClick={() => setCursor(m.ply)}
                 >
@@ -269,7 +291,7 @@ function EvalGraph({
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
-      className="w-full max-w-[480px] rounded border border-[var(--border)] bg-[var(--panel)]"
+      className="w-full max-w-[480px] cursor-crosshair rounded-lg border border-[var(--border)] bg-[var(--panel)]"
       onClick={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -278,14 +300,21 @@ function EvalGraph({
       }}
       data-testid="eval-graph"
     >
-      <line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="#2c3a2e" />
+      <line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="#1f1f26" />
       <polyline
         fill="none"
-        stroke="#c4a35a"
-        strokeWidth={2}
+        stroke="#dfa93f"
+        strokeWidth={1.5}
         points={pts.join(" ")}
       />
-      <line x1={cursorX} y1={0} x2={cursorX} y2={h} stroke="#5a9e6f" strokeDasharray="4" />
+      <line
+        x1={cursorX}
+        y1={0}
+        x2={cursorX}
+        y2={h}
+        stroke="#70707c"
+        strokeDasharray="3"
+      />
     </svg>
   );
 }
