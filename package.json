@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:smoke": "playwright test",
-    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts lib/puzzles/rating.test.ts",
+    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts lib/puzzles/rating.test.ts lib/engine/onnx-bot.test.ts",
     "import:puzzles": "tsx scripts/import-puzzles.ts",
     "validate:puzzles": "tsx scripts/validate-puzzles.ts"
   },

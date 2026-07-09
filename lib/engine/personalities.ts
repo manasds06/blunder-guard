@@ -68,6 +68,19 @@ export const PERSONALITIES: Personality[] = [
     hue: 45,
     oneLiners: ["GG.", "Clean game.", "See you on the board."],
   },
+  {
+    id: "manas-bot",
+    name: "Manas-Bot",
+    elo: 700,
+    style: "balanced",
+    blurb: "Trained on real humans (ONNX) — falls back to weak Stockfish until the model ships.",
+    hue: 280,
+    oneLiners: [
+      "Felt human, right?",
+      "I miss tactics too.",
+      "Maia vibes loading…",
+    ],
+  },
 ];
 
 export function getPersonality(id: string): Personality | undefined {

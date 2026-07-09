@@ -1,0 +1,2 @@
+# Place trained manas-bot.onnx here (target <10MB quantized).
+# OnnxBotProvider looks for /models/manas-bot.onnx at runtime.

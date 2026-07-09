@@ -82,3 +82,17 @@ Opening lines live in `lib/openings/repertoire/` as data, not hardcoded UI. Tran
 
 ### DRY SRS
 Opening misses reuse `lib/puzzles/srs.ts` with `kind: "opening"`.
+
+## Phase 6 — Capstone ML bot
+
+### Dataset leakage
+Split by **game**, not position — consecutive plies from one game in both train and val inflate accuracy.
+
+### Temperature sampling
+Argmax plays the same “best guess” every time (robotic). Sampling from the policy with temperature ~1.0 is what makes Maia-style bots feel human.
+
+### Strategy + Decorator payoff
+`OnnxBotProvider` plugs into the same interface as Stockfish; `PersonalityWrapper` can wrap it later with zero UI edits.
+
+### Plane encoding
+8×8×17: 12 piece planes + STM + 4 castling. This tensor *is* the lesson — unit-test encode/decode before training.

@@ -97,3 +97,11 @@ PGN → sanitize → Stockfish sweep (dedicated provider instance)
 - **Dashboard** (`/dashboard`): blunders/game sparkline, puzzle rating, win rate by Elo, estimated strength.
 - **Openings** (`/openings`): Italian, anti-Sicilian, Scandinavian, KID-lite — drill by FEN/move order; SRS on misses.
 - **Personalities**: `PersonalityWrapper` (Decorator) biases MultiPV sampling — aggressive / solid / speedy — without changing Elo caps.
+
+## Phase 6 — Manas-Bot (capstone)
+
+- Plan: `docs/CAPSTONE_PLAN.md` (sign off before training).
+- `lib/engine/onnx-bot.ts` implements `EngineProvider`; selectable as **Manas-Bot** on /play.
+- Without `/public/models/manas-bot.onnx`, falls back to weak Stockfish MultiPV sampling.
+- ML stubs: `ml/prepare_data.py`, `ml/train.py`, `ml/export_onnx.py`.
+- Hints still use Stockfish (`evaluate` → `NotSupportedError`).

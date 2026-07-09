@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { getBotLevel } from "@/lib/engine/botLevels";
+import { OnnxBotProvider } from "@/lib/engine/onnx-bot";
 import { getPlayEngine } from "@/lib/engine/stockfish";
 import {
   getPersonality,
@@ -75,6 +76,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
 
   const chessRef = useRef(new Chess());
   const botBusy = useRef(false);
+  const onnxRef = useRef<OnnxBotProvider | null>(null);
 
   // Init engine once
   useEffect(() => {
@@ -173,7 +175,14 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
       const level = getBotLevel(elo);
 
       let provider: EngineProvider = stockfish;
-      if (persona && persona.style !== "balanced") {
+      // Manas-Bot uses OnnxBotProvider — Strategy payoff: same getMove path.
+      if (persona?.id === "manas-bot") {
+        if (!onnxRef.current) {
+          onnxRef.current = new OnnxBotProvider();
+          await onnxRef.current.init();
+        }
+        provider = onnxRef.current;
+      } else if (persona && persona.style !== "balanced") {
         provider = new PersonalityWrapper(stockfish, persona);
       }
 
