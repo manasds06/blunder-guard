@@ -80,3 +80,14 @@ Switch in UI via Settings → Coach LLM, or env `LLM_PROVIDER`. Model overrides:
 - **Supabase/Prisma** optional: set `DATABASE_URL` and run `npm run import:puzzles -- path/to.csv`.
 - Practice-by-theme mode never touches puzzle rating.
 - Failed puzzles enter SRS intervals `[1, 3, 7]` days.
+
+## Phase 4 — Analysis + accounts
+
+```
+PGN → sanitize → Stockfish sweep (dedicated provider instance)
+    → detector on user moves → top 3 mistakes → coach key lesson
+```
+
+- Eval graph is **White's perspective**, clamped ±5 pawns (mates at clamp).
+- Auth via Supabase magic link when env keys exist; otherwise "Local mode".
+- `lib/storage/sync.ts` queues offline writes (last-write-wins) for later cloud push.

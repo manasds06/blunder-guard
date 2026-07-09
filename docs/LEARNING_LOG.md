@@ -57,3 +57,17 @@ Fail → due in 1 day. Pass on review → next interval (3, then 7). Simpler tha
 
 ### Lichess puzzle format
 FEN is *before* the opponent's setup move. `moves[0]` is that setup; the solver plays the rest, alternating with opponent replies.
+
+## Phase 4 — Analysis + accounts
+
+### Pipelines & seams
+`analyzeGame(pgn, onProgress)` is intentionally a single function signature so a future server worker can replace the client Stockfish loop without UI changes.
+
+### Progressive enhancement
+Logged-out = full local app. Supabase auth is additive cloud sync, not a gate.
+
+### Offline-first sync
+Write IndexedDB first, enqueue push, retry later. Conflicts: last-write-wins by timestamp (simpler than CRDTs; fine for single-user training data).
+
+### Eval graph clamping
+Raw mates are ±10000-ish; the chart clamps to ±5 pawns so one mate doesn't flatten the rest of the game.

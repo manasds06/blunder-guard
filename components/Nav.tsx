@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AuthMenu } from "@/components/AuthMenu";
 
 const links = [
   { href: "/play", label: "Play" },
@@ -17,7 +18,7 @@ export function Nav() {
         <Link href="/" className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--accent)]">
           Blunder Guard
         </Link>
-        <nav className="flex flex-wrap gap-1 text-sm">
+        <nav className="flex flex-wrap items-center gap-1 text-sm">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -27,6 +28,7 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
+          <AuthMenu />
         </nav>
       </div>
     </header>
