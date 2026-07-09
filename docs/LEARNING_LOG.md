@@ -43,3 +43,17 @@ Missing keys / rate limit / network errors → `templates.ts`. UI never shows ra
 
 ### Eval perspective
 Stockfish scores are side-to-move. `moverPerspectiveCp` in `detector.ts` is the single normalization point — don't re-implement elsewhere.
+
+## Phase 3 — Puzzles
+
+### Elo math
+`newR = R + K*(score - expected)` with `expected = 1/(1+10^((puzzleR-userR)/400))`. Same family as chess ratings; K=32 is a learning-friendly step size.
+
+### Spaced repetition (Leitner)
+Fail → due in 1 day. Pass on review → next interval (3, then 7). Simpler than SM-2 but enough for a beginner queue.
+
+### Streaming imports
+`scripts/import-puzzles.ts` reads the Lichess CSV line-by-line so a multi-million-row file never sits fully in RAM. Stratified buckets keep every Elo band stocked.
+
+### Lichess puzzle format
+FEN is *before* the opponent's setup move. `moves[0]` is that setup; the solver plays the rest, alternating with opponent replies.

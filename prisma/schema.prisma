@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lichess puzzle row — public-read in Supabase (RLS select for anon).
+model Puzzle {
+  id         String   @id
+  fen        String
+  moves      String
+  rating     Int
+  themes     String[]
+  popularity Int
+
+  @@index([rating])
+  @@index([themes])
+}
+
+/// Phase 4+ user-owned rows
+model Game {
+  id        String   @id @default(cuid())
+  userId    String
+  pgn       String
+  result    String
+  botElo    Int?
+  analyzed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PuzzleAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  puzzleId    String
+  solved      Boolean
+  ratingAfter Int
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UserProfile {
+  userId          String   @id
+  puzzleRating    Int      @default(600)
+  conceptsCovered String[]
+  settings        Json?
+}

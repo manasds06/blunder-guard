@@ -8,11 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "test:smoke": "playwright test",
-    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts"
+    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts lib/puzzles/rating.test.ts",
+    "import:puzzles": "tsx scripts/import-puzzles.ts",
+    "validate:puzzles": "tsx scripts/validate-puzzles.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
     "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^5.22.0",
     "chess.js": "^1.4.0",
     "idb": "^8.0.3",
     "next": "16.2.10",
@@ -28,6 +31,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5"

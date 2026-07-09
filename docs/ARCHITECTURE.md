@@ -67,3 +67,16 @@ Switch in UI via Settings → Coach LLM, or env `LLM_PROVIDER`. Model overrides:
 1. Instant classifications: local eval swing thresholds (free)
 2. Pre-move Blunder Check: depth-8 search, modal never reveals the better move
 3. Rich Explain: LLM, cached (client IndexedDB + server LRU), max 20 LLM calls/session then templates
+
+## Phase 3 — Puzzle trainer
+
+```
+/puzzles → selectPuzzle (±100 Elo, SRS due first)
+        → parsePuzzleLine (setup ply + solution)
+        → recordAttempt → Elo update + Leitner SRS
+```
+
+- **Local bank** (`lib/puzzles/bank.ts`) ships 10 curated puzzles so the feature works offline.
+- **Supabase/Prisma** optional: set `DATABASE_URL` and run `npm run import:puzzles -- path/to.csv`.
+- Practice-by-theme mode never touches puzzle rating.
+- Failed puzzles enter SRS intervals `[1, 3, 7]` days.
