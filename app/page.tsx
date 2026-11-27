@@ -4,7 +4,7 @@ const features = [
   {
     kicker: "01 / play",
     title: "Bots from 400 to 2000",
-    body: "Human-weak engines that miss tactics the way people do — not crippled randomness.",
+    body: "A model trained on 3.2M moves from real Lichess games plays like a player at your rating. Or pick classic Stockfish.",
     href: "/play",
   },
   {
