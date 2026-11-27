@@ -33,8 +33,10 @@ export type MoveOptions = {
   depth?: number;
   /** MultiPV count — set BEFORE go; reset to 1 after weak-bot sampling */
   multipv?: number;
-  /** Target Elo when using UCI_LimitStrength (1320–2000) */
+  /** Target Elo: UCI_LimitStrength (1320–2000) for Stockfish; the rating the human-bot plays as */
   elo?: number;
+  /** Human-bot only: the opponent's (player's) rating, a model input */
+  opponentElo?: number;
   /** Stockfish Skill Level 0–20 for sub-1320 bots */
   skillLevel?: number;
   /** When true, enable UCI_LimitStrength + UCI_Elo */

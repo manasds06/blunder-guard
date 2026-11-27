@@ -73,7 +73,7 @@ export const PERSONALITIES: Personality[] = [
     name: "Manas-Bot",
     elo: 700,
     style: "balanced",
-    blurb: "Trained on real humans (ONNX) — falls back to weak Stockfish until the model ships.",
+    blurb: "Trained on real 700-rated Lichess games. Misses the tactics a 700 misses.",
     hue: 280,
     oneLiners: [
       "Felt human, right?",

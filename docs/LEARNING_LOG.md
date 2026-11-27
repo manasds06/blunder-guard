@@ -95,4 +95,43 @@ Argmax plays the same “best guess” every time (robotic). Sampling from the p
 `OnnxBotProvider` plugs into the same interface as Stockfish; `PersonalityWrapper` can wrap it later with zero UI edits.
 
 ### Plane encoding
-8×8×17: 12 piece planes + STM + 4 castling. This tensor *is* the lesson — unit-test encode/decode before training.
+8×8×17: 12 piece planes + "board exists" plane + 4 castling. This tensor *is* the lesson — unit-test encode/decode before training. (Code: `ml/bgml/encoding.py`.)
+
+The board is always drawn from the **side to move's** point of view: on Black's turn it is mirrored and colours swapped. So a side-to-move plane would always read "White" and carries no information; it was replaced by an all-ones plane that lets the conv layers tell the board's edge from empty squares.
+
+### Week 1 — explain it back
+
+Answer each out loud before reading the answer. These are the questions an interviewer will ask.
+
+**Q: How do you represent a chess move as a classification target?**
+A: `from_square × 64 + to_square` → one of 4,096 classes, in the mover's mirrored frame. Most ids are never legal, so at prediction time a legal-move mask sets illegal ids to −∞ before softmax. Trade-off: it cannot tell under-promotions apart (decoded as queen), costing at most ~0.1% of moves, in exchange for a much simpler output layer than AlphaZero's.
+
+**Q: Why mirror the board for Black?**
+A: Chess is symmetric. Without the flip the network has to learn every pattern twice (once per colour). With it, "how do I play from the bottom of the board" is one set of patterns, learned from twice the data.
+
+**Q: How do you split train and test, and why?**
+A: Two ways. (1) By **game**: positions from one game are near-duplicates, so splitting by position leaks answers into validation (`game_hash`). (2) By **time**: train on one month, test on a later month, which also checks that the model generalises rather than memorises that month's games.
+
+**Q: Why throw some moves away?**
+A: First 5 plies are memorised opening theory, not decisions. Moves with under 30 s on the clock are panic. Positions already decided by 10+ pawns are ones where players stop trying. All three make the data say less about how a person of that rating *thinks*.
+
+**Q: Why balance by Elo band?**
+A: Lichess has far more 1500s than 700s. Unbalanced, the model mostly learns 1500-level chess, and the low-rated bots, which matter most for Blunder Guard, would be the worst. Each 100-Elo band gets the same number of games.
+
+**Q: How do you get data from a 30 GB file onto a laptop?**
+A: You don't download it. Stream it: HTTP → zstd decompressor → PGN parser, and stop once every Elo band is full. Rejected games are skipped from their headers alone, so their moves are never parsed. Output goes to compressed shards with bit-packed planes (136 bytes per position instead of 1,088).
+
+**Q: How does one network play at different ratings?**
+A: The ratings are inputs. Two extra 8×8 planes hold the mover's and the opponent's Elo (normalised to roughly −1..1), so the same position with a different rating plane gives a different move distribution. Maia v1 trained one network per rating band; one conditioned network shares what all ratings have in common and needs less data per band.
+
+**Q: Why is the output layer convolutional instead of a big dense layer?**
+A: The last conv outputs 64 channels. Channel *t* at square *f* is the score for "move from *f* to *t*", which is exactly the 64×64 = 4,096 move ids. A dense layer over the board would add ~8M parameters; the whole network is ~0.5M.
+
+**Q: How did you know it wasn't overfitting, and what would you change?**
+A: Validation (held-out September games) and test (October games) top-1 were 41.2% and 40.9%, nearly identical, so it generalises across games and across time. By epoch 6, train loss (1.91) was below val loss (2.01) and val was barely improving, so more epochs would not help much. More data would: Maia used millions of games per band; this run used 4,000.
+
+**Q: Why are "top-1" and "as a bot" different numbers?**
+A: Top-1 is the model's single most likely move (41%). As a bot it *samples* from its distribution so it isn't predictable, and the chance a sample equals the human's move is the probability it gave that move (30%). Sampling trades match rate for variety. Temperature controls the trade-off and is the next thing to tune.
+
+**Q: What is the baseline, and why is it computed exactly?**
+A: Move-match: how often a method plays the human's actual move. For the current low-rated bots the app picks one of Stockfish's top N lines with geometric weights (0.55×), so the match chance is the sum of the weights of the lines equal to the human's move. That's an exact expectation, with no sampling noise. Bots at 1400+ use Stockfish's internal randomness, so those are sampled once per position.

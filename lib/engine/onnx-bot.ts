@@ -1,149 +1,109 @@
 /**
- * OnnxBotProvider — Phase 6 custom neural bot.
+ * OnnxBotProvider — the trained human-move model as a bot.
  *
- * Pattern: Strategy — implements EngineProvider so /play needs zero UI changes.
- * evaluate() throws NotSupportedError (move predictor, not a judge).
+ * Pattern: Strategy — implements EngineProvider, so /play needs no special
+ * casing beyond choosing this provider. evaluate() throws NotSupportedError:
+ * this model predicts what a human plays, it does not judge positions.
  *
- * Until a trained manas-bot.onnx is present, getMove() falls back to a weak
- * Stockfish sample so the bot is selectable and games complete end-to-end.
+ * Pipeline per move: FEN → planes (human-encoding.ts) → worker runs the ONNX
+ * model → 4096 logits → mask illegal → sample with temperature → UCI.
+ *
+ * If the model or worker can't load (old browser, missing file), it falls
+ * back to weak Stockfish so a game never dead-ends — and says so in the
+ * console, so a silent fallback can't masquerade as the trained model.
  */
-import { Chess, type Square } from "chess.js";
 import type { EngineProvider } from "./provider";
 import type { EngineMove, EvalOptions, Evaluation, MoveOptions } from "./types";
 import { NotSupportedError } from "./types";
 import { StockfishProvider } from "./stockfish";
+import { encodeBoard, pickMove } from "./human-encoding";
 
-const MODEL_URL = "/models/manas-bot.onnx";
+export const MODEL_URL = "/models/human-bot.onnx";
+const WORKER_URL = "/engine/human-bot-worker.js";
+const DEFAULT_ELO = 1200;
+
+type WorkerReply = { id: number; ok: boolean; ms?: number; logits?: Float32Array; error?: string };
 
 export class OnnxBotProvider implements EngineProvider {
-  readonly id = "manas-bot";
-  private fallback: StockfishProvider | null = null;
-  private modelReady = false;
+  readonly id = "human-bot";
+  /** 1 = the model's own distribution (most human); lower = more predictable */
+  temperature = 1;
+  /** Last inference time in ms, for the UI / debugging */
+  lastInferenceMs: number | null = null;
 
-  async init(): Promise<void> {
-    // Try to detect a shipped ONNX model; if missing, use Stockfish fallback.
-    try {
-      const res = await fetch(MODEL_URL, { method: "HEAD" });
-      this.modelReady = res.ok;
-    } catch {
-      this.modelReady = false;
-    }
-    if (!this.modelReady) {
-      this.fallback = new StockfishProvider();
-      await this.fallback.init();
-    }
-    // Real path (when model exists): spawn Worker with onnxruntime-web,
-    // load WASM backend assets from /public, warm up with a dummy tensor.
+  private worker: Worker | null = null;
+  private fallback: StockfishProvider | null = null;
+  private nextId = 1;
+  private pending = new Map<number, (r: WorkerReply) => void>();
+  private initPromise: Promise<void> | null = null;
+
+  get usingModel(): boolean {
+    return this.worker !== null;
   }
 
-  async getMove(fen: string, _opts: MoveOptions): Promise<EngineMove> {
-    if (this.modelReady) {
-      // Placeholder for ONNX inference + temperature sampling + illegal mask.
-      // Keeping the seam explicit so training export drops in cleanly.
-      throw new Error(
-        "ONNX model detected but inference worker not yet loaded — complete training export.",
-      );
-    }
-    if (!this.fallback) {
+  init(): Promise<void> {
+    this.initPromise ??= this.load();
+    return this.initPromise;
+  }
+
+  private async load(): Promise<void> {
+    try {
+      this.worker = new Worker(WORKER_URL);
+      this.worker.onmessage = (e: MessageEvent<WorkerReply>) => {
+        const resolve = this.pending.get(e.data.id);
+        if (resolve) {
+          this.pending.delete(e.data.id);
+          resolve(e.data);
+        }
+      };
+      const reply = await this.call({ type: "init", modelUrl: MODEL_URL });
+      if (!reply.ok) throw new Error(reply.error);
+      console.info(`human-bot: model loaded in ${Math.round(reply.ms ?? 0)} ms`);
+    } catch (err) {
+      console.warn("human-bot: model unavailable, falling back to weak Stockfish", err);
+      this.worker?.terminate();
+      this.worker = null;
       this.fallback = new StockfishProvider();
       await this.fallback.init();
     }
-    // Human-like weak play stand-in: Skill 1 + MultiPV sampling (~600–700 feel)
-    return this.fallback.getMove(fen, {
-      skillLevel: 1,
-      multipv: 4,
-      movetime: 60,
-      limitStrength: false,
+  }
+
+  private call(msg: Record<string, unknown>, transfer: Transferable[] = []): Promise<WorkerReply> {
+    const worker = this.worker;
+    if (!worker) return Promise.reject(new Error("worker not running"));
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      this.pending.set(id, resolve);
+      worker.postMessage({ ...msg, id }, transfer);
     });
   }
 
+  async getMove(fen: string, opts: MoveOptions): Promise<EngineMove> {
+    await this.init();
+    if (this.fallback) {
+      return this.fallback.getMove(fen, { skillLevel: 1, multipv: 4, movetime: 60 });
+    }
+    const elo = opts.elo ?? DEFAULT_ELO;
+    const planes = encodeBoard(fen);
+    const reply = await this.call(
+      { type: "infer", planes, elo, oppElo: opts.opponentElo ?? elo },
+      [planes.buffer],
+    );
+    if (!reply.ok || !reply.logits) throw new Error(`human-bot inference failed: ${reply.error}`);
+    this.lastInferenceMs = reply.ms ?? null;
+    return { uci: pickMove(fen, reply.logits, this.temperature) };
+  }
+
   async evaluate(_fen: string, _opts: EvalOptions): Promise<Evaluation> {
-    // This provider predicts moves; it does not judge positions.
     throw new NotSupportedError("OnnxBotProvider.evaluate");
   }
 
   dispose(): void {
+    this.worker?.terminate();
+    this.worker = null;
     this.fallback?.dispose();
     this.fallback = null;
-  }
-}
-
-/** Encode FEN → 8×8×17 planes (documented for the learning log / training parity). */
-export function encodeFenPlanes(fen: string): Float32Array {
-  const chess = new Chess(fen);
-  const planes = new Float32Array(8 * 8 * 17);
-  const piecePlane: Record<string, number> = {
-    P: 0, N: 1, B: 2, R: 3, Q: 4, K: 5,
-    p: 6, n: 7, b: 8, r: 9, q: 10, k: 11,
-  };
-  const board = chess.board();
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const p = board[r]![c];
-      if (!p) continue;
-      const key = p.color === "w" ? p.type.toUpperCase() : p.type;
-      const plane = piecePlane[key];
-      if (plane == null) continue;
-      planes[plane * 64 + r * 8 + c] = 1;
-    }
-  }
-  // plane 12: side to move
-  if (chess.turn() === "w") {
-    planes.fill(1, 12 * 64, 13 * 64);
-  }
-  // planes 13–16: castling rights KQkq
-  const rights = fen.split(" ")[2] ?? "-";
-  const castlePlanes = [
-    rights.includes("K"),
-    rights.includes("Q"),
-    rights.includes("k"),
-    rights.includes("q"),
-  ];
-  castlePlanes.forEach((on, i) => {
-    if (on) planes.fill(1, (13 + i) * 64, (14 + i) * 64);
-  });
-  return planes;
-}
-
-/** Mask illegal UCI moves using chess.js — always apply before sampling. */
-export function legalUcis(fen: string): string[] {
-  const chess = new Chess(fen);
-  return chess.moves({ verbose: true }).map(
-    (m) => m.from + m.to + (m.promotion ?? ""),
-  );
-}
-
-/** Temperature sample over logits for legal moves only. */
-export function sampleMove(
-  fen: string,
-  scores: Map<string, number>,
-  temperature = 1.0,
-): string {
-  const legal = legalUcis(fen);
-  const weights = legal.map((u) => {
-    const s = scores.get(u) ?? -Infinity;
-    return Math.exp(s / Math.max(0.05, temperature));
-  });
-  const sum = weights.reduce((a, b) => a + b, 0);
-  let r = Math.random() * sum;
-  for (let i = 0; i < legal.length; i++) {
-    r -= weights[i]!;
-    if (r <= 0) return legal[i]!;
-  }
-  return legal[0]!;
-}
-
-/** Soft validate a UCI string against the position. */
-export function isLegalUci(fen: string, uci: string): boolean {
-  try {
-    const chess = new Chess(fen);
-    const move = chess.move({
-      from: uci.slice(0, 2) as Square,
-      to: uci.slice(2, 4) as Square,
-      promotion: (uci[4] as "q") ?? undefined,
-    });
-    return Boolean(move);
-  } catch {
-    return false;
+    this.pending.clear();
+    this.initPromise = null;
   }
 }

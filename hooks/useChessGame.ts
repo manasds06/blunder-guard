@@ -34,10 +34,14 @@ export type GameStatus =
   | "draw"
   | "resigned";
 
+/** "stockfish" = tuned Stockfish levels; "human" = the model trained on real games */
+export type BotStyle = "stockfish" | "human";
+
 export type UseChessGameOptions = {
   botElo?: number;
   playerColor?: PlayerColor;
   personalityId?: string | null;
+  botStyle?: BotStyle;
 };
 
 function detectStatus(chess: Chess, resigned = false): GameStatus {
@@ -58,6 +62,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     opts.playerColor ?? "w",
   );
   const [botElo, setBotElo] = useState(opts.botElo ?? 800);
+  const [botStyle, setBotStyle] = useState<BotStyle>(opts.botStyle ?? "stockfish");
   const [personalityId, setPersonalityId] = useState<string | null>(
     opts.personalityId ?? null,
   );
@@ -180,8 +185,9 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
       const level = getBotLevel(elo);
 
       let provider: EngineProvider = stockfish;
-      // Manas-Bot uses OnnxBotProvider — Strategy payoff: same getMove path.
-      if (persona?.id === "manas-bot") {
+      // The trained human-move model — Strategy payoff: same getMove path.
+      const human = botStyle === "human" || persona?.id === "manas-bot";
+      if (human) {
         if (!onnxRef.current) {
           onnxRef.current = new OnnxBotProvider();
           await onnxRef.current.init();
@@ -191,13 +197,17 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
         provider = new PersonalityWrapper(stockfish, persona);
       }
 
-      const move = await provider.getMove(chess.fen(), {
-        movetime: level.movetime,
-        skillLevel: level.skillLevel,
-        elo: level.elo,
-        limitStrength: level.limitStrength,
-        multipv: level.pickFromTop > 1 ? level.pickFromTop : 1,
-      });
+      const move = human
+        ? // the model takes the rating itself, not Stockfish knobs: getBotLevel
+          // would clamp e.g. 700 up to Stockfish's 1320 floor
+          await provider.getMove(chess.fen(), { elo })
+        : await provider.getMove(chess.fen(), {
+            movetime: level.movetime,
+            skillLevel: level.skillLevel,
+            elo: level.elo,
+            limitStrength: level.limitStrength,
+            multipv: level.pickFromTop > 1 ? level.pickFromTop : 1,
+          });
 
       // Validate with chess.js — never trust raw UCI blindly
       const from = move.uci.slice(0, 2) as Square;
@@ -217,7 +227,7 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     } finally {
       botBusy.current = false;
     }
-  }, [botElo, engineReady, personalityId, playerColor, syncFromChess]);
+  }, [botElo, botStyle, engineReady, personalityId, playerColor, syncFromChess]);
 
   // Bot to move after player move / new game as black
   useEffect(() => {
@@ -417,6 +427,8 @@ export function useChessGame(opts: UseChessGameOptions = {}) {
     scrubTo,
     setBotElo,
     setPlayerColor,
+    botStyle,
+    setBotStyle,
     personalityId,
     selectPersonality,
     botLine,

@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 450" width="1000" height="450" role="img" aria-labelledby="t d" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+<title id="t">How often each bot plays the move a real human played</title>
+<desc id="d">Move-match rate by player rating on 4,298 held-out Lichess positions. Top choice: trained model 40.9% vs Stockfish best move 36.8%. As a bot: trained model 29.9% vs current Stockfish bots 25.5%.</desc>
+<style>
+:root{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--grid:#e4e3df;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}
+@media (prefers-color-scheme: dark){:root{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--grid:#333331;--s1:#3987e5;--s2:#d95926;--s3:#199e70}}
+.title{font-size:20px;font-weight:600;fill:var(--ink)}.sub{font-size:13px;fill:var(--ink2)}.h{font-size:14px;font-weight:600;fill:var(--ink)}.tick{font-size:11px;fill:var(--ink2)}.lab{font-size:12px;fill:var(--ink)}.grid{stroke:var(--grid);stroke-width:1}
+</style>
+<rect width="1000" height="450" rx="8" fill="var(--surface)"/>
+<text class="title" x="64" y="38">How often each bot plays the move a real human played</text>
+<text class="sub" x="64" y="60">Share of positions where the bot's move equals the move a human actually played.</text>
+<text class="sub" x="64" y="78">4,298 held-out positions from October 2026 Lichess games · model trained on September · 300 per rating band</text>
+<text class="h" x="64" y="138">Top choice</text>
+<line class="grid" x1="64" x2="424" y1="392.0" y2="392.0"/>
+<text class="tick" x="54" y="396.0" text-anchor="end">0%</text>
+<line class="grid" x1="64" x2="424" y1="344.4" y2="344.4"/>
+<text class="tick" x="54" y="348.4" text-anchor="end">10%</text>
+<line class="grid" x1="64" x2="424" y1="296.8" y2="296.8"/>
+<text class="tick" x="54" y="300.8" text-anchor="end">20%</text>
+<line class="grid" x1="64" x2="424" y1="249.2" y2="249.2"/>
+<text class="tick" x="54" y="253.2" text-anchor="end">30%</text>
+<line class="grid" x1="64" x2="424" y1="201.6" y2="201.6"/>
+<text class="tick" x="54" y="205.6" text-anchor="end">40%</text>
+<line class="grid" x1="64" x2="424" y1="154.0" y2="154.0"/>
+<text class="tick" x="54" y="158.0" text-anchor="end">50%</text>
+<text class="tick" x="72.0" y="412" text-anchor="middle">600</text>
+<text class="tick" x="124.9" y="412" text-anchor="middle">800</text>
+<text class="tick" x="177.8" y="412" text-anchor="middle">1000</text>
+<text class="tick" x="230.8" y="412" text-anchor="middle">1200</text>
+<text class="tick" x="283.7" y="412" text-anchor="middle">1400</text>
+<text class="tick" x="336.6" y="412" text-anchor="middle">1600</text>
+<text class="tick" x="389.5" y="412" text-anchor="middle">1800</text>
+<text class="tick" x="244.0" y="434" text-anchor="middle">player rating (Elo band)</text>
+<polyline fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" points="72.0,254.0 98.5,246.0 124.9,228.6 151.4,207.9 177.8,211.1 204.3,239.7 230.8,212.7 257.2,227.0 283.7,223.8 310.2,219.1 336.6,201.6 363.1,201.6 389.5,192.1 416.0,182.6"/>
+<circle cx="72.0" cy="254.0" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 600: 29.0%</title></circle>
+<circle cx="98.5" cy="246.0" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 700: 30.7%</title></circle>
+<circle cx="124.9" cy="228.6" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 800: 34.3%</title></circle>
+<circle cx="151.4" cy="207.9" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 900: 38.7%</title></circle>
+<circle cx="177.8" cy="211.1" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1000: 38.0%</title></circle>
+<circle cx="204.3" cy="239.7" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1100: 32.0%</title></circle>
+<circle cx="230.8" cy="212.7" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1200: 37.7%</title></circle>
+<circle cx="257.2" cy="227.0" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1300: 34.7%</title></circle>
+<circle cx="283.7" cy="223.8" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1400: 35.3%</title></circle>
+<circle cx="310.2" cy="219.1" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1500: 36.3%</title></circle>
+<circle cx="336.6" cy="201.6" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1600: 40.0%</title></circle>
+<circle cx="363.1" cy="201.6" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1700: 40.0%</title></circle>
+<circle cx="389.5" cy="192.1" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1800: 42.0%</title></circle>
+<circle cx="416.0" cy="182.6" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"><title>Stockfish best move, 1900: 44.0%</title></circle>
+<polyline fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" points="72.0,230.2 98.5,215.9 124.9,181.0 151.4,184.1 177.8,203.2 204.3,217.5 230.8,188.9 257.2,188.9 283.7,193.7 310.2,201.6 336.6,195.3 363.1,193.7 389.5,192.1 416.0,171.5"/>
+<circle cx="72.0" cy="230.2" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 600: 34.0%</title></circle>
+<circle cx="98.5" cy="215.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 700: 37.0%</title></circle>
+<circle cx="124.9" cy="181.0" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 800: 44.3%</title></circle>
+<circle cx="151.4" cy="184.1" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 900: 43.7%</title></circle>
+<circle cx="177.8" cy="203.2" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1000: 39.7%</title></circle>
+<circle cx="204.3" cy="217.5" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1100: 36.7%</title></circle>
+<circle cx="230.8" cy="188.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1200: 42.7%</title></circle>
+<circle cx="257.2" cy="188.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1300: 42.7%</title></circle>
+<circle cx="283.7" cy="193.7" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1400: 41.7%</title></circle>
+<circle cx="310.2" cy="201.6" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1500: 40.0%</title></circle>
+<circle cx="336.6" cy="195.3" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1600: 41.3%</title></circle>
+<circle cx="363.1" cy="193.7" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1700: 41.7%</title></circle>
+<circle cx="389.5" cy="192.1" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1800: 42.0%</title></circle>
+<circle cx="416.0" cy="171.5" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1900: 46.3%</title></circle>
+<text class="h" x="540" y="138">As a bot (sampling its moves)</text>
+<line class="grid" x1="540" x2="900" y1="392.0" y2="392.0"/>
+<line class="grid" x1="540" x2="900" y1="344.4" y2="344.4"/>
+<line class="grid" x1="540" x2="900" y1="296.8" y2="296.8"/>
+<line class="grid" x1="540" x2="900" y1="249.2" y2="249.2"/>
+<line class="grid" x1="540" x2="900" y1="201.6" y2="201.6"/>
+<line class="grid" x1="540" x2="900" y1="154.0" y2="154.0"/>
+<text class="tick" x="548.0" y="412" text-anchor="middle">600</text>
+<text class="tick" x="600.9" y="412" text-anchor="middle">800</text>
+<text class="tick" x="653.8" y="412" text-anchor="middle">1000</text>
+<text class="tick" x="706.8" y="412" text-anchor="middle">1200</text>
+<text class="tick" x="759.7" y="412" text-anchor="middle">1400</text>
+<text class="tick" x="812.6" y="412" text-anchor="middle">1600</text>
+<text class="tick" x="865.5" y="412" text-anchor="middle">1800</text>
+<text class="tick" x="720.0" y="434" text-anchor="middle">player rating (Elo band)</text>
+<polyline fill="none" stroke="var(--s3)" stroke-width="2" stroke-linejoin="round" points="548.0,312.1 574.5,296.1 600.9,285.1 627.4,274.9 653.8,272.6 680.3,284.2 706.8,261.1 733.2,277.3 759.7,254.0 786.2,280.9 812.6,254.0 839.1,260.3 865.5,244.4 892.0,241.3"/>
+<circle cx="548.0" cy="312.1" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 600: 16.8%</title></circle>
+<circle cx="574.5" cy="296.1" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 700: 20.2%</title></circle>
+<circle cx="600.9" cy="285.1" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 800: 22.5%</title></circle>
+<circle cx="627.4" cy="274.9" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 900: 24.6%</title></circle>
+<circle cx="653.8" cy="272.6" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1000: 25.1%</title></circle>
+<circle cx="680.3" cy="284.2" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1100: 22.7%</title></circle>
+<circle cx="706.8" cy="261.1" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1200: 27.5%</title></circle>
+<circle cx="733.2" cy="277.3" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1300: 24.1%</title></circle>
+<circle cx="759.7" cy="254.0" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1400: 29.0%</title></circle>
+<circle cx="786.2" cy="280.9" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1500: 23.3%</title></circle>
+<circle cx="812.6" cy="254.0" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1600: 29.0%</title></circle>
+<circle cx="839.1" cy="260.3" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1700: 27.7%</title></circle>
+<circle cx="865.5" cy="244.4" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1800: 31.0%</title></circle>
+<circle cx="892.0" cy="241.3" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"><title>Current Stockfish bots, 1900: 31.7%</title></circle>
+<polyline fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" points="548.0,275.9 574.5,259.1 600.9,240.2 627.4,254.3 653.8,249.4 680.3,259.5 706.8,237.4 733.2,245.0 759.7,248.3 786.2,250.4 812.6,252.6 839.1,241.9 865.5,242.9 892.0,236.0"/>
+<circle cx="548.0" cy="275.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 600: 24.4%</title></circle>
+<circle cx="574.5" cy="259.1" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 700: 27.9%</title></circle>
+<circle cx="600.9" cy="240.2" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 800: 31.9%</title></circle>
+<circle cx="627.4" cy="254.3" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 900: 28.9%</title></circle>
+<circle cx="653.8" cy="249.4" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1000: 30.0%</title></circle>
+<circle cx="680.3" cy="259.5" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1100: 27.8%</title></circle>
+<circle cx="706.8" cy="237.4" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1200: 32.5%</title></circle>
+<circle cx="733.2" cy="245.0" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1300: 30.9%</title></circle>
+<circle cx="759.7" cy="248.3" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1400: 30.2%</title></circle>
+<circle cx="786.2" cy="250.4" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1500: 29.7%</title></circle>
+<circle cx="812.6" cy="252.6" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1600: 29.3%</title></circle>
+<circle cx="839.1" cy="241.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1700: 31.5%</title></circle>
+<circle cx="865.5" cy="242.9" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1800: 31.3%</title></circle>
+<circle cx="892.0" cy="236.0" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"><title>Trained model, 1900: 32.8%</title></circle>
+<line x1="64" x2="82" y1="106" y2="106" stroke="var(--s1)" stroke-width="2"/>
+<circle cx="73" cy="106" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>
+<text class="lab" x="90" y="110">Trained model</text>
+<line x1="209" x2="227" y1="106" y2="106" stroke="var(--s2)" stroke-width="2"/>
+<circle cx="218" cy="106" r="4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/>
+<text class="lab" x="235" y="110">Stockfish best move</text>
+<line x1="396" x2="414" y1="106" y2="106" stroke="var(--s3)" stroke-width="2"/>
+<circle cx="405" cy="106" r="4" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/>
+<text class="lab" x="422" y="110">Current Stockfish bots</text>
+<text class="lab" x="426.0" y="175.5">model 46%</text>
+<text class="lab" x="426.0" y="189.5">Stockfish 44%</text>
+<text class="lab" x="902.0" y="240.0">model 33%</text>
+<text class="lab" x="902.0" y="254.0">current bots 32%</text>
+</svg>

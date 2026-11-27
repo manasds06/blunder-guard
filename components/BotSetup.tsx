@@ -5,28 +5,75 @@ import {
   PERSONALITIES,
   type Personality,
 } from "@/lib/engine/personalities";
-import type { PlayerColor } from "@/hooks/useChessGame";
+import type { BotStyle, PlayerColor } from "@/hooks/useChessGame";
 
 type Props = {
   botElo: number;
   playerColor: PlayerColor;
   personalityId: string | null;
+  botStyle: BotStyle;
   onBotElo: (elo: number) => void;
   onColor: (c: PlayerColor) => void;
+  onBotStyle: (s: BotStyle) => void;
   onSelectPersonality: (p: Personality) => void;
 };
 
-/** Opponent setup — strength, side, and personality in one panel. */
+const STYLES: { id: BotStyle; label: string; blurb: string }[] = [
+  {
+    id: "stockfish",
+    label: "Stockfish",
+    blurb: "Engine weakened to your level. Its mistakes can feel random.",
+  },
+  {
+    id: "human",
+    label: "Human-like",
+    blurb:
+      "A model trained on 3.2M moves from real Lichess games. It makes the mistakes players at this rating actually make.",
+  },
+];
+
+/** Opponent setup — style, strength, side, and personality in one panel. */
 export function BotSetup({
   botElo,
   playerColor,
   personalityId,
+  botStyle,
   onBotElo,
   onColor,
+  onBotStyle,
   onSelectPersonality,
 }: Props) {
+  const style = STYLES.find((s) => s.id === botStyle) ?? STYLES[0]!;
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <span className="label">opponent</span>
+        <div
+          className="grid grid-cols-2 overflow-hidden rounded-md border border-[var(--border)]"
+          role="radiogroup"
+          aria-label="opponent style"
+          data-testid="bot-style"
+        >
+          {STYLES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="radio"
+              aria-checked={botStyle === s.id}
+              className={`px-2 py-[0.4rem] text-[0.8125rem] transition-colors ${
+                botStyle === s.id
+                  ? "bg-[var(--fg)] font-medium text-[var(--bg)]"
+                  : "text-[var(--muted)] hover:bg-white/5 hover:text-[var(--fg)]"
+              }`}
+              onClick={() => onBotStyle(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[0.75rem] text-[var(--muted)]">{style.blurb}</p>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5">
           <span className="label">strength</span>

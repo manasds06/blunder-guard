@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/copy-ort.mjs",
     "build": "next build",
+    "prebuild": "node scripts/copy-ort.mjs",
     "start": "next start",
     "lint": "eslint",
     "test:smoke": "playwright test",
-    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts lib/puzzles/rating.test.ts lib/engine/onnx-bot.test.ts",
+    "test:unit": "npx tsx --test lib/engine/botLevels.test.ts lib/coach/detector.test.ts lib/puzzles/rating.test.ts lib/engine/human-encoding.test.ts",
+    "copy:ort": "node scripts/copy-ort.mjs",
     "import:puzzles": "tsx scripts/import-puzzles.ts",
     "validate:puzzles": "tsx scripts/validate-puzzles.ts"
   },
@@ -21,6 +24,7 @@
     "chess.js": "^1.4.0",
     "idb": "^8.0.3",
     "next": "16.2.10",
+    "onnxruntime-web": "1.22",
     "react": "19.2.4",
     "react-chessboard": "^5.10.0",
     "react-dom": "19.2.4"

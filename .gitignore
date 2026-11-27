@@ -43,3 +43,11 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# ML: Python env, Lichess shards, downloaded engines
+/ml/.venv/
+/ml/data/
+/ml/bin/
+__pycache__/
+/ml/checkpoints/
+/public/engine/ort/
