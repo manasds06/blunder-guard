@@ -150,7 +150,8 @@ export function PlayScreen() {
   const persona = game.personalityId
     ? getPersonality(game.personalityId)
     : undefined;
-  const botName = persona?.name ?? "Stockfish";
+  const botName =
+    persona?.name ?? (game.botStyle === "human" ? "Human-like bot" : "Stockfish");
   const botSubtitle = persona
     ? `${game.botElo} elo · ${persona.style}`
     : `${game.botElo} elo`;
@@ -313,6 +314,11 @@ export function PlayScreen() {
                 botElo={game.botElo}
                 playerColor={game.playerColor}
                 personalityId={game.personalityId}
+                botStyle={game.botStyle}
+                onBotStyle={(s) => {
+                  game.setBotStyle(s);
+                  void game.newGame(game.playerColor, game.botElo, null);
+                }}
                 onBotElo={(elo) => {
                   void game.newGame(game.playerColor, elo, null);
                 }}

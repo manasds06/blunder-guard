@@ -50,3 +50,4 @@ next-env.d.ts
 /ml/bin/
 __pycache__/
 /ml/checkpoints/
+/public/engine/ort/
