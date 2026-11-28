@@ -4,6 +4,10 @@ Chess training app: Elo bots, live blunder coach, puzzles, analysis — and a
 **human-like bot trained on 3.2M moves from real Lichess games**, running in
 your browser.
 
+![Playing the human-like bot: the blunder check stops a hanging bishop, then the coach explains it and draws the better move](./docs/demo.gif)
+
+<sub>A real game against the 1200 human-like bot. 1.e4 is fine. 2.Ba6 hangs the bishop, so the blunder check stops the move first; played anyway, the coach names the problem and draws the engine's move. The bot's replies are sampled, so each run plays out a little differently.</sub>
+
 ## A bot that plays like a real person
 
 Practice bots are usually Stockfish turned down, and their mistakes feel
@@ -37,6 +41,18 @@ move the human actually played. Then I trained a model to do better.
 Pick **Opponent → Human-like** on the play screen. The data pipeline,
 training and evaluation are in [`ml/`](./ml); the reasoning behind each step is
 in the [learning log](./docs/LEARNING_LOG.md).
+
+## The coach
+
+Stockfish does the judging and the language model only does the wording, because LLMs are bad at calculating chess.
+
+- **Blunder check, before the move.** When you drop a piece, Stockfish checks the move at depth 8 (about 150 ms). If it loses 3 pawns or more, the move is held and you get the three questions: is my piece safe, are their pieces hanging, is my king safe. It never tells you the better move at this point; you can take another look or play it anyway.
+- **A verdict after every move.** Stockfish evaluates the position before and after at depth 12. A drop of 0.5 pawns is an inaccuracy, 1 is a mistake, 2 is a blunder. For those three, a detector names the reason, such as a hung piece, a missed capture or a back-rank mate, and "Show best move" draws the engine's move on the board.
+- **The explanation can't invent moves.** The engine's move and line go to the model in normal notation. If the reply names any move that isn't the one you played, isn't in Stockfish's line and isn't legal in the position, it's thrown away and a written template is used instead. Without a model configured, templates are all you get, and they always work.
+
+That last check exists because an earlier version told players to make impossible moves. Themes fired on good moves, a back-rank warning fired in the opening, and moves were shown in engine notation for the wrong side. Each case is now a unit test.
+
+The rest of the app: rated puzzles that come back on a spaced-repetition schedule when you miss them, full-game analysis from a PGN with an eval graph and the three biggest mistakes, and an openings page for practising repertoire lines.
 
 ## Quick start
 
