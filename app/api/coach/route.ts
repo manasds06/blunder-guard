@@ -9,7 +9,13 @@ import type { LlmProviderId } from "@/lib/llm/provider";
 import { LlmUnavailableError } from "@/lib/llm/provider";
 import { COACH_SYSTEM_PROMPT } from "@/lib/prompts/coach";
 import { cacheGet, cacheSet, hashKey } from "@/lib/coach/cache";
-import { templateExplanation } from "@/lib/coach/templates";
+import {
+  EXPLANATION_VERSION,
+  inventedMoves,
+  lineToSan,
+  templateExplanation,
+  uciToSan,
+} from "@/lib/coach/templates";
 import type { MistakeReport } from "@/lib/coach/detector";
 
 export const runtime = "nodejs";
@@ -30,7 +36,7 @@ function buildUserMessage(report: MistakeReport): string {
   return [
     `POSITION (FEN): ${report.fenBefore}`,
     `MOVE PLAYED: ${report.san} | Eval before: ${formatEval(report.evalBefore)} | after: ${formatEval(report.evalAfter)} | Classification: ${report.classification}`,
-    `ENGINE BEST: ${report.bestMove}, line: ${report.bestLine.join(" ")} | Theme: ${report.theme}`,
+    `ENGINE BEST: ${uciToSan(report.fenBefore, report.bestMove) ?? report.bestMove}, line: ${lineToSan(report.fenBefore, report.bestLine).join(" ")} | Theme: ${report.theme}`,
     `Eval swing (mover perspective): ${report.swingCp} cp`,
     "",
     "Explain this for the student. Use ONLY the engine facts above — do not invent moves.",
@@ -66,7 +72,7 @@ export async function POST(req: Request) {
   }
 
   const available = await listAvailableProviders();
-  const key = await hashKey(`${report.fenBefore}|${report.san}`);
+  const key = await hashKey(`${EXPLANATION_VERSION}|${report.fenBefore}|${report.san}`);
   const cached = cacheGet(key);
   if (cached) {
     return NextResponse.json({
@@ -89,6 +95,18 @@ export async function POST(req: Request) {
       ],
       { maxTokens: 300 },
     );
+    // The LLM explains; it must not calculate. If it names a move that is not
+    // the played move, not in the engine's line and not legal in the position,
+    // discard its answer rather than show the student an impossible move.
+    const invented = inventedMoves(text, report);
+    if (invented.length > 0) {
+      return NextResponse.json({
+        text: templateExplanation(report),
+        source: "template",
+        error: `LLM named moves not in the engine line: ${invented.join(", ")}`,
+        available,
+      });
+    }
     cacheSet(key, text, llm.id);
     return NextResponse.json({
       text,

@@ -92,9 +92,20 @@ function detectThemes(
   fenBefore: string,
   fenAfter: string,
   evalBefore: Evaluation,
+  evalAfter: Evaluation,
   bestMoveUci: string,
   playedUci: string,
+  classification: Classification,
 ): MistakeTheme {
+  // A theme explains a mistake. Good moves get no lecture.
+  if (
+    classification !== "INACCURACY" &&
+    classification !== "MISTAKE" &&
+    classification !== "BLUNDER"
+  ) {
+    return "none";
+  }
+
   if (evalBefore.mate != null && evalBefore.mate > 0) {
     // Had a mate — if we didn't play the mating move, flag it
     if (bestMoveUci && playedUci !== bestMoveUci) return "missed_mate";
@@ -136,8 +147,12 @@ function detectThemes(
     }
   }
 
-  // Back-rank danger heuristic
-  if (isBackRankDanger(after, before.turn())) return "back_rank";
+  // Back rank: only when the engine says the opponent now has a forced mate
+  // (evalAfter is from the opponent's side) AND the mover's king is stuck on
+  // its home rank. The pawn-shape heuristic alone fires in nearly every
+  // opening position.
+  const opponentMates = evalAfter.mate != null && evalAfter.mate > 0;
+  if (opponentMates && isBackRankDanger(after, before.turn())) return "back_rank";
 
   return "none";
 }
@@ -206,8 +221,10 @@ export async function analyzeUserMove(
     fenBefore,
     fenAfter,
     evalBefore,
+    evalAfter,
     bestUci,
     playedUci,
+    classification,
   );
 
   return {

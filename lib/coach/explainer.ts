@@ -2,7 +2,7 @@
  * Client-side coach explanation helper with IndexedDB cache + rate limit.
  */
 import type { MistakeReport } from "./detector";
-import { templateExplanation } from "./templates";
+import { EXPLANATION_VERSION, templateExplanation } from "./templates";
 import {
   getCachedExplanation,
   setCachedExplanation,
@@ -24,7 +24,7 @@ export type ExplainResult = {
 };
 
 function clientHash(fen: string, move: string): string {
-  return `${fen}|${move}`;
+  return `${EXPLANATION_VERSION}|${fen}|${move}`;
 }
 
 export async function explainMistake(
